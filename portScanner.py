@@ -53,4 +53,5 @@ scanHost()
 # Implement config file generation
 # Implement reading from config file
 # Implement better error handling for scanning than just exiting, if possible
+# Implement lower limit for port scanning range
 
