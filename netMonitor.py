@@ -5,7 +5,7 @@ import datetime
 
 
 # Capturing raw packets
-def main():
+def monitor():
    conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
    datetime_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
    packet_num = 0
@@ -115,7 +115,7 @@ def multi_line_format(prefix, string, size=80):
 
 # Executing the Program
 try: 
-   main()
+   monitor()
 
 except KeyboardInterrupt:
    pass
