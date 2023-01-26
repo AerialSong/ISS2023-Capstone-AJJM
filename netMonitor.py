@@ -69,7 +69,7 @@ def get_mac(bytes_mac):
 
 
 # Unpacking Layer 3 (Network) Packets by taking out first 20 bytes
-# Returns IP version, IP header length, time to live, network protocol, src IP, dst IP, and data after IP header length bytes [payload]
+# Returns time to live, network protocol, src IP, dst IP, and data after IP header length bytes [payload]
 def L3_packet(data):
    IPver_head_length = data[0]
    IPhead_length = (IPver_head_length & 15) * 4 # Bitwise and operator to get the header length. Header length used to know where payload starts
@@ -83,14 +83,14 @@ def get_IP(bytes_IP):
 
 
 # Unpacking Layer 3 ICMP packets by taking out first 4 bytes
-# Returnin ICMP type, code, checksum, and data after 4 bytes [payload]
+# Returns ICMP type, checksum, and data after 4 bytes [payload]
 def icmp_unpack(data):
    icmp_type, code, checksum = struct.unpack('! B B H', data[:4])
    return icmp_type, checksum, data[4:]
 
 
 # Unpacking Layer 4 TCP segments by taking out first 14 bytes
-# Returns source port, destination port, sequence acknowledgement, offset value, flags, and data after offset [payload]
+# Returns source port, destination port, sequence, acknowledgement, and data after offset [payload]
 def tcp_unpack(data):
    (src_port, dst_port, seq, ack, offset_reserved_flags) = struct.unpack('! H H L L H', data[:14])
    offset = (offset_reserved_flags >> 12) * 4
