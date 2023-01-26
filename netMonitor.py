@@ -30,28 +30,28 @@ def monitor():
          if L3_proto == 1:
             icmp_type, checksum, data = icmp_unpack(data)
             print(format_star1, f"ICMP Packet - Type: {icmp_type}, Checksum: {checksum}")
-            print(format_star2, "Data:\n", multi_line_format(format_tab, data))
+            print(format_star2, "Data:\n", line_format(format_tab, data))
          
          # IP Protocol ID 6 is TCP
          elif L3_proto == 6:
             (src_port, dst_port, seq, ack, data) = tcp_unpack(data)
             print(format_star1, f"TCP Segment - Src Port: {src_port}, Dst Port: {dst_port}, Seq: {seq}, Ack: {ack}")
-            print(format_star2, "Data:\n", multi_line_format(format_tab, data))
+            print(format_star2, "Data:\n", line_format(format_tab, data))
          
          # IP Protocol ID 17 is UDP
          elif L3_proto == 17:
             src_port, dst_port, size, data = udp_unpack(data)
             print(format_star1, f"UDP Segment - Src Port: {src_port}, Dst Port: {dst_port}, Size: {size}")
-            print(format_star2, "Data:\n", multi_line_format(format_tab, data))
+            print(format_star2, "Data:\n", line_format(format_tab, data))
 
          # Other IP Protocols
          else:
             print(format_star1, "Data:")
-            print(multi_line_format(format_tab, data))
+            print(line_format(format_tab, data))
       
       else:
          print("Data:")
-         print(multi_line_format(format_tab, data))
+         print(line_format(format_tab, data))
       
 
 
@@ -104,7 +104,7 @@ def udp_unpack(data):
 
 
 # Function to format multi-line data
-def multi_line_format(prefix, string, size=80):
+def line_format(prefix, string, size=80):
    size -= len(prefix)
    if isinstance(string, bytes):
       string = ''.join(r'\x{:02x}'.format(byte) for byte in string)
