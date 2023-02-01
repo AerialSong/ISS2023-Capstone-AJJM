@@ -1,12 +1,9 @@
 import argparse
-import argparse
 import json
 import os
 from os.path import exists
 import sys
 import time as clock
-import keyboard
-import msvcrt
 
 # Code by Arthur Kutepov, 2023
 '''
