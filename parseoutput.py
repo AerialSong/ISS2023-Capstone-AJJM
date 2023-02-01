@@ -54,7 +54,7 @@ def time(arg):
 
 # Print function. All arguments are sent here and printed
 def printargs(args):
-    path = "C:\\Users\\arthu\\OneDrive - Southern Alberta Institute of Technology\\Capstone Winter 2023\\Python files\\arg.txt"
+    path = "arg.txt"
     try:
         while True:
             # Checks if newly created txt file exists
