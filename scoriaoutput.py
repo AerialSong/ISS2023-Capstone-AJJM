@@ -13,18 +13,21 @@ def printargs(args):
     
     # local list variable to store json namespace data
     mydict = {}
+    arglist = ['destination','source','protocol','port','date','time']
     try:
         while True:
             # Checks if newly created txt file exists
             # if so, the arguments are then changed in real time
             if exists(path):
                 with open(path, "r") as f:
-                    #args.__dict__ = json.load(f)
                     mydict = json.load(f)
                     f.close()
-                    #print(mydict)
                 os.remove(path)
-                     
+                   
+                '''for i in arglist:
+                    if mydict.values == arglist[i]:
+                        args.arglist[i] = mydict[arglist[i]]'''
+
                 if mydict["destination"] != None:
                     args.destination = mydict["destination"]
                 if mydict["source"] != None:
@@ -37,9 +40,13 @@ def printargs(args):
                     args.date = mydict["date"]
                 if mydict["time"] != None:
                     args.time = mydict["time"]
-                '''for key, value in mydict.items():
+        
+                
+            '''
+                for key, value in mydict.items():
                     if value != None and key == vars(args).keys:
-                        vars(args).value = value'''
+                        vars(args).value = value
+            '''
         # Checks if each argument in the namespace is null or not
         # If not, they print
 
