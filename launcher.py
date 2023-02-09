@@ -25,7 +25,8 @@ def launchFlow(script):  # Flow control for individual script execution
                 print("")
                 break
             elif yesnt == "N" or yesnt == "n":
-                break
+                print("Acknowledged. Exiting program.")
+                sys.exit()
             else:
                 print("Invalid input detected! Please try again.\n")
 
