@@ -46,14 +46,13 @@ def monitor():
 
          # Other IP Protocols
          else:
-            print(format_star1, "Data:")
+            print(format_star1, "IP Protocol that is not ICMP, TCP, and UDP - Data:")
             print(line_format(format_tab, data))
       
       else:
-         print("Data:")
+         print("Data other than IPv4:")
          print(line_format(format_tab, data))
       
-
 
 # Unpacking Layer 2 (Data Link) frames by taking out first 14 bytes
 # Returns dst mac, src mac, protocol, and the data after 14 bytes [payload]
@@ -83,7 +82,7 @@ def get_IP(bytes_IP):
 
 
 # Unpacking Layer 3 ICMP packets by taking out first 4 bytes
-# Returns ICMP type, checksum, and data after 4 bytes [payload]
+# Returnin ICMP type, checksum, and data after 4 bytes [payload]
 def icmp_unpack(data):
    icmp_type, code, checksum = struct.unpack('! B B H', data[:4])
    return icmp_type, checksum, data[4:]
