@@ -4,11 +4,13 @@ import socket
 import sys
 import re
 import time
+import os
+import platform
 from datetime import datetime
 
 # Code by Mackenzie Cleland, 2023
 # This code comprises a fully-functional port scanner, as part of our capstone project,
-# SCOLIA v.1.0 All-in-One IDS Suite
+# SCORIA v.1.0 All-in-One IDS Suite
 
 # IMPORTANT!!!
 # The config file MUST be formatted as follows:
@@ -16,13 +18,6 @@ from datetime import datetime
 # Line 2 = LOWER port limit
 # Line 3 = UPPER port limit
 # Any deviation from this format WILL cause issues!!!
-
-# subprocess.call('clear', shell=True)    # Clears
-
-# IP and upper/lower port limits need not be defined globally, as they actually don't need to be passed directly
-# genConfig() generates them in the first place, and pipes them to config.txt
-# readConfig() reads those same values from config.txt, so variable names don't matter
-# hostScan() does an entirely-customized scan, so again, variable names don't matter
 
 
 def scanHost(address, low, up):  # Scans specified IP address and ports, either from config.txt or according to user specifications
@@ -67,18 +62,54 @@ def genConfig():    # Generates config.txt for purposes of automation
         yesno = input("Is this OK? Y/N ")
         while True:
             if yesno == "Y" or yesno == "y":    # Will proceed to write to file
-                # Put code here!
-                # Check in program folder (saves time for user) for config.txt
-                # If not there, use bash commands to touch file
-                # If there, use bash commands to overwrite file
-                # Pipe output to file
-                # Start by making file manually, then running script
-                # Then delete file, and get script to touch and pipe it!
+                new = f"{confip}\n{confolim}\n{confulim}"  # String holds user-defined parameters
+                print(f"Operating system detected as: {platform.system()}")  # Check in Scoria installation folder (saves time for user) for config.txt
+                print(f"Checking installation directory: {os.getcwd()} for config.txt...")
+
+                try:  # Check if user wants to overwrite config.txt if already present in installation folder
+                    open("config.txt")
+                    dec = input("File config.txt already exists. Do you wish to overwrite? Y/N")
+                    if dec == "Y" or dec == "y":  # Overwrite config.txt
+                        over = open(os.path.join(os.getcwd(), "config.txt"), "w")
+                        over.write(new)
+                        over.close()
+                        print("File config.txt has been overwritten. Returning to launcher.")
+                        exec(open("launcher.py").read())
+
+                    elif dec == "N" or dec == "n":  # Return to launcher.py
+                        print("Decided not to overwrite config.txt. Returning to Scoria launcher...")
+                        print("=================================================================\n")
+                        exec(open("launcher.py").read())
+
+                    else:
+                        print("Incorrect input! Try again.\n")
+                        break
+
+                except FileNotFoundError:  # Touch config.txt if not present in installation folder
+                    dec = input("File config.txt can be created. Do you wish to proceed? Y/N")
+                    if dec == "Y" or dec == "y":  # Touch config.txt
+                        conf = open(os.path.join(os.getcwd(), "config.txt"), "w")
+                        conf.write(new)
+                        conf.close()
+                        print("File config.txt has been generated. Returning to launcher.")
+                        exec(open("launcher.py").read())
+
+                    elif dec == "N" or dec == "n": # Return to launcher.py
+                        print("Decided not to create config.txt. Returning to Scoria launcher...")
+                        print("=================================================================\n")
+                        exec(open("launcher.py").read())
+
+                    else:
+                        print("Incorrect input! Try again.\n")
+                        break
+
                 genflow = genflow + 1   # Facilitates breaking out of both loops
                 break
+
             elif yesno == "N" or yesno == "n":  # Will trigger outer loop to restart
                 print("Please enter parameters again.")
                 break
+            
             else:   # Will also trigger outer loop to restart
                 print("Improper input entered. Please choose again.")
                 break
@@ -115,8 +146,7 @@ def custScan():     # Establishes IP address and port limits for a custom scan
     while True:
         ulim = int(input("Please provide the *HIGHEST* port number you wish to scan: ")) + 1
         if ulim > 65536 or ulim < 1:
-            print("Invalid port number. Please try again.")
-            sys.exit()
+            print("Invalid port number. Please try again.\n")
         else:
             break
 
@@ -124,11 +154,11 @@ def custScan():     # Establishes IP address and port limits for a custom scan
         olim = int(input("Please provide the *LOWEST* port number you wish to scan: "))  # TypeError handling?
         if olim > 65536 or olim < 1 or olim > ulim:
             print("Invalid port number. Please try again.")
-            sys.exit()
         else:
             break
     
-    scanHost(ipaddr, ulim, olim)
+    # print(f"Upper limit: {ulim}, Lower limit: {olim}")  # For debugging
+    scanHost(ipaddr, olim, ulim)
 
 
 def main():     # Main flow control for program
@@ -149,8 +179,3 @@ def main():     # Main flow control for program
 
 
 main()
-
-
-# TO DO:
-# Implement config file generation
-# Implement better error handling for scanning than just exiting, if possible
