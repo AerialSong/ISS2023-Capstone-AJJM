@@ -1,24 +1,40 @@
 import argparse
+
 import json
 
+
+
 '''
+
 copy paste the parser object and argument info
+
 upon command entry, send command to txt file
+
 parseoutput reads txt file and takes command
+
 variables change
+
 voila
+
 '''
+
+
 
 def main():
+
     # parser object
+
     parser = argparse.ArgumentParser(description="A lightweight command-line based Network Traffic Analyzer")
 
-    parser.add_argument("-des", "--destination", "-dest", type=str, nargs=1, metavar="destination_ip", default=None, help="Destination IP Address")
-    parser.add_argument("-s", "--source", type=str, nargs=1, metavar="source_ip", default=None, help="Source IP Address")
-    parser.add_argument("-pr", "--protocol", type=str, nargs=1, metavar="protocol_name", default=None, help="Type of protocol")
-    parser.add_argument("-p", "--port", type=str, nargs=1, metavar="port_num", default=None, help="Port Number")
-    parser.add_argument("-d", "--date", type=int, nargs=1, metavar="date", default=None, help="Date packet was made; Syntax = MMdd")
-    parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Time packet was made; Syntax = HHmm")
+    parser.add_argument("-dest", "--destination", type=str, nargs=1, metavar="destination_ip", default=None, help="Specify your desired Destination IP Address for filtration; Syntax = 111.222.333.444")
+    parser.add_argument("-s", "--source", type=str, nargs=1, metavar="source_ip", default=None, help="Specify your desired source IP Address for filtration; Syntax = 111.222.333.444")
+    parser.add_argument("-pr", "--protocol", type=str, nargs=1, metavar="protocol_name", default=None, help="Specify your desired protocol name for filtration; TCP or UDP")
+    parser.add_argument("-sp", "--srcport", type=str, nargs=1, metavar="src_port_num", default=None, help="Specify your desired Source Port number for filtration")
+    parser.add_argument("-dp", "--destport", type=str, nargs=1, metavar="dest_port_num", default=None, help="Specify your desired Destination Port number for filtration")
+    parser.add_argument("-sm" , "--srcmac", type=str, nargs=1, metavar="src_mac", default=None, help="Specify your desired Source Mac address for filtration; Syntax = 00:00:00:00:00:00")
+    parser.add_argument("-dm" , "--destmac", type=str, nargs=1, metavar="dest_mac", default=None, help="Specify your desired Destination Mac address for filtration; Syntax = 00:00:00:00:00:00")
+    parser.add_argument("-d", "--date", type=str, nargs=1, metavar="date", default=None, help="Specify your desired date of packet creation for filtration; Syntax = MMdd")
+    parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Specify your desired time of packet creation for filtration; Syntax = HHmm")
 
     args = parser.parse_args()
 
