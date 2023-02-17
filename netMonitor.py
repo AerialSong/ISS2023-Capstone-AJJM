@@ -4,7 +4,7 @@ import textwrap
 import datetime
 
 
-# Capturing raw packets
+# Capturing raw packets from network
 def monitor():
    conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
    datetime_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
