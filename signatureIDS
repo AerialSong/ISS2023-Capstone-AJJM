@@ -29,33 +29,33 @@ suspicious_headers = {
 def detect_packet(packet):
     # Check for suspicious IP addresses
     if IP in packet and packet[IP].src in suspicious_ips:
-        print(f'Suspicious IP address detected: {packet[IP].src}')
+        print(f'Suspicious IP address detected: Source - {packet[IP].src} | Destination - {packet[IP].dst}')
 
     # Check for suspicious file hashes
     if Raw in packet:
         payload = packet[Raw].load
         file_hash = hashlib.md5(payload).hexdigest()
         if file_hash in suspicious_hashes:
-            print(f'Suspicious file hash detected: {file_hash}')
+            print(f'Suspicious file hash detected: Source - {packet[IP].src} | File Hash - {file_hash}')
 
    #  Check for suspicious URL patterns
     if TCP in packet and packet[TCP].payload:
         payload = str(packet[TCP].payload)
         if suspicious_url_pattern.search(payload):
-            print(f'Suspicious URL pattern detected: {payload}')
+            print(f'Suspicious URL pattern detected: Source - {packet[IP].src} | Payload - {payload}')
 
     # Check for suspicious packet payload patterns
     if TCP in packet and packet[TCP].payload:
         payload = str(packet[TCP].payload)
         if suspicious_payload_pattern.search(payload):
-            print(f'Suspicious packet payload detected: {payload}')
+            print(f'Suspicious packet payload detected: Source - {packet[IP].src} | Payload - {payload}')
 
    # Check for suspicious headers
     for header in suspicious_headers:
         if header in packet:
             for value in suspicious_headers[header]:
                 if value in packet[header]:
-                    print(f"Suspicious packet detected: {packet.summary()}")
+                    print(f"Suspicious packet detected: Source - {packet[IP].src} | Payload - {packet.summary()}")
                     return
 
     # Check for suspicious packet sizes
@@ -65,7 +65,7 @@ def detect_packet(packet):
         expected_length = tcp_header_length + payload_length
         actual_length = len(packet)
         if actual_length > expected_length * 3 or actual_length < expected_length * 0.03:
-            print(f"Packet size is suspicious! Expected {expected_length}, got {actual_length}")
+            print(f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}")
 
 # Create a packet sniffer using Scapy
 sniff(filter=packet_filter, prn=detect_packet)
