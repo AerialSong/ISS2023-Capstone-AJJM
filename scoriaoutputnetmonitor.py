@@ -26,11 +26,11 @@ import ipaddress
 
 def monitor(args):
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
-    datetime_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    datetime_month = int(datetime.datetime.now().strftime("%m"))#.strftime("%Y-%m-%d %H:%M:%S")
+    datetime_day = datetime.datetime.now().strftime("%d")
+    datetime_hour = datetime.datetime.now().strftime("%H")
+    datetime_min = datetime.datetime.now().strftime("%M")
     packet_num = 0
-    format_star1 = "    *"
-    format_star2 = "\t*"
-    format_tab = "\t   "
     path = "arg.txt"
     
     # local list variable to store json namespace data
@@ -64,12 +64,9 @@ def monitor(args):
                 args.time = mydict["time"]
         else:
             pass
-            
-        '''except KeyboardInterrupt:
-            print("\nExiting Program...\n")
-            sys.tracebacklimit = 0'''
 
-        # If entered argument is "none" then the argument becomes null
+
+        # If entered argument in input script is "none" then the argument becomes null
         if args.destination != None and args.destination[0] == 'none':
             args.destination = None
 
@@ -114,9 +111,12 @@ def monitor(args):
         if args.destmac != None:
             arglist.append(args.destmac[0])
         if args.date != None:
-            arglist.append(args.date[0])
+            # Month and day
+            arglist.append(args.date[0][0:2])
+            arglist.append(args.date[0][2:4])
         if args.time != None:
-            arglist.append(args.time[0])
+            arglist.append(args.time[0][0:2])
+            arglist.append(args.time[0][2:4])
 
 
     # the plan: upon entering an argument, say if someone searches for -dest 3.3.3.3, then it will check if 
@@ -136,6 +136,8 @@ def monitor(args):
 
         # Packets are constantly received
         packetlist = []
+        # List of months for the date argument
+        months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
         inet_data, addr = conn.recvfrom(65536) # buffersize
         dst_mac, src_mac, L2_proto, data = L2_frame(inet_data)
         packetlist.append(dst_mac)
@@ -150,6 +152,8 @@ def monitor(args):
         # IP Protocol ID 1 is ICMP
         if L3_proto == 1:
             icmp_type, checksum, data = icmp_unpack(data)
+            proto = "ICMP"
+            packetlist.append(proto)
         # IP protocol ID 6 is TCP
         elif L3_proto == 6:
             (src_port, dst_port, seq, ack, data) = tcp_unpack(data)
@@ -164,6 +168,11 @@ def monitor(args):
             packetlist.append(src_port)
             packetlist.append(dst_port)
             packetlist.append(proto)
+
+        packetlist.append(datetime_month)
+        packetlist.append(datetime_day)
+        packetlist.append(datetime_hour) 
+        packetlist.append(datetime_min)
         
         #print(arglist)
         #print(packetlist)
@@ -176,12 +185,8 @@ def monitor(args):
             # Ethernet frame ID 8 is IPv4
             if L2_proto == 8:
                 print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
-
-            # IP Protocol ID 1 is ICMP
-            if L3_proto == 1:
-                icmp_type, checksum, data = icmp_unpack(data)
          
-            print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} |\n", end='')
+            print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
 
         elif set(arglist).issubset(packetlist) == True:
             print(f"| Num: {packet_num} | Src MAC: {src_mac} | Dest MAC: {dst_mac} ", end='')
@@ -189,12 +194,8 @@ def monitor(args):
             # Ethernet frame ID 8 is IPv4
             if L2_proto == 8:
                 print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
-
-            # IP Protocol ID 1 is ICMP
-            if L3_proto == 1:
-                icmp_type, checksum, data = icmp_unpack(data)
          
-            print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} |\n", end='')
+            print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
       
 
 
@@ -270,7 +271,7 @@ if __name__ == '__main__':
     parser.add_argument("-sm" , "--srcmac", type=str, nargs=1, metavar="src_mac", default=None, help="Specify your desired Source Mac address for filtration; Syntax = 00:00:00:00:00:00")
     parser.add_argument("-dm" , "--destmac", type=str, nargs=1, metavar="dest_mac", default=None, help="Specify your desired Destination Mac address for filtration; Syntax = 00:00:00:00:00:00")
     parser.add_argument("-d", "--date", type=str, nargs=1, metavar="date", default=None, help="Specify your desired date of packet creation for filtration; Syntax = MMdd")
-    parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Specify your desired time of packet creation for filtration; Syntax = HHmm")
+    parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Specify your desired time of packet creation for filtration in 24 hour format; Syntax = HHmm")
 
     args = parser.parse_args()
 
@@ -290,8 +291,16 @@ if __name__ == '__main__':
     else:
         pass
 
+    if args.protocol != None:
+        protolist = ["TCP", "UDP", "ICMP"]
+        if args.protocol[0] not in protolist:
+            sys.exit(f"Protocol not in the list of fliterable protocols. Enter a protocol as it appears in this list: {', '.join(protolist)}")
+    else:
+        pass
+
     if args.srcport != None:
         try:
+            # Checking valid port number
             if int(args.srcport[0]) not in range(1, 65535):
                 sys.exit("Entered Source port argument not found in range 1-65535! Reenter the option within that range\nExiting Program...")
         except ValueError:
@@ -299,6 +308,61 @@ if __name__ == '__main__':
     else:
         pass
 
+    if args.destport != None:
+        try:
+            # Checking valid port number)
+            if int(args.destport[0]) not in range(1, 65535):
+                sys.exit("Entered Destination port argument not found in range 1-65535! Reenter the option within that range\nExiting Program...")
+        except ValueError:
+            sys.exit("Entered Source port option is not an integer! Reenter as an integer within the range 1-65535\nExiting Program...")
+    else:
+        pass
+
+    if args.srcmac != None:
+        # Regex to check valid MAC address
+        regex = ("^([0-9A-Fa-f]{2}[:-])" +
+                "{5}([0-9A-Fa-f]{2})|" +
+                "([0-9a-fA-F]{4}\\." +
+                "[0-9a-fA-F]{4}\\." +
+                "[0-9a-fA-F]{4})$")
+        p = re.compile(regex)
+        if (re.search(p, args.srcmac[0])):
+            pass
+        else:
+            sys.exit("Entered Source MAC address argument was not the proper syntax! Reenter MAC address with this syntax: 00:00:00:00:00:00 or 00-00-00-00-00-00\nExiting Program...")
+    else:
+        pass
+
+    if args.destmac != None:
+        # Regex to check valid MAC address
+        regex = ("^([0-9A-Fa-f]{2}[:-])" +
+                "{5}([0-9A-Fa-f]{2})|" +
+                "([0-9a-fA-F]{4}\\." +
+                "[0-9a-fA-F]{4}\\." +
+                "[0-9a-fA-F]{4})$")
+        p = re.compile(regex)
+        if (re.search(p, args.srcmac[0])):
+            pass
+        else:
+            sys.exit("Entered Destination MAC address argument was not the proper syntax! Reenter MAC address with this syntax: 00:00:00:00:00:00 or 00-00-00-00-00-00\nExiting Program...")
+    else:
+        pass
+
+    if args.date != None:
+        if len(args.date[0]) == 4:
+            if args.date[0] == int:
+                pass
+        else:
+            sys.exit("Entered Date argument is not an integer or was inputted incorrectly! Reenter Date argument with this syntax: MMDD\nExiting Program...")
+    else:
+        pass
+
+    if args.time != None:
+        if len(args.time[0]) == 4:
+            if args.time[0] == int:
+                pass
+        else:
+            sys.exit("Entered Time argument is not an integer or was inputted incorrectly! Reenter Time argument with this syntax in a 24 hour format: HHMM\nExiting Program")
 
     # Executing the Program
     try: 
@@ -309,7 +373,6 @@ if __name__ == '__main__':
 
     #printargs(args)
     # To do:
-    # Import netMonitor as a module and see if you can capture any network info
     # You have your output code, this one, and you have a second script which takes a variable from this one and changes it and sends it back to this one
     # both scripts are running at the same time.
 
