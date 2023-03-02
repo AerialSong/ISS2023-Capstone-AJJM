@@ -11,6 +11,7 @@ import subprocess
 import re
 import sys
 import ipaddress
+import math
 
 # Code by Arthur Kutepov, Jomel Jay 2023
 
@@ -27,7 +28,7 @@ import ipaddress
 def monitor(args):
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
     datetime_month = int(datetime.datetime.now().strftime("%m"))#.strftime("%Y-%m-%d %H:%M:%S")
-    datetime_day = datetime.datetime.now().strftime("%d")
+    datetime_day = datetime.datetime.now().strftime('%d')
     datetime_hour = datetime.datetime.now().strftime("%H")
     datetime_min = datetime.datetime.now().strftime("%M")
     packet_num = 0
@@ -44,6 +45,7 @@ def monitor(args):
                 f.close()
             os.remove(path)
                    
+            # Moves all the values from the json file to mydict
             if mydict["destination"] != None:
                 args.destination = mydict["destination"]
             if mydict["source"] != None:
@@ -94,30 +96,42 @@ def monitor(args):
         if args.time != None and args.time[0] == 'none':
             args.time = None
 
-        arglist = []
+        argdictlist = {"Destination":"", "Source":"", "Protocol":"", "Srcport":"", "Destport":"", "Srcmac":"", "Destmac":"", "Month":"", "Day":"", "Hour":"", "Minute":""}
 
         if args.destination != None:
-            arglist.append(args.destination[0])
+            argdictlist["Destination"] = args.destination[0]
         if args.source != None:
-            arglist.append(args.source[0])
+            argdictlist["Source"] = args.source[0]
         if args.protocol != None:
-            arglist.append(args.protocol[0])
+            argdictlist["Protocol"] = args.protocol[0]
         if args.srcport != None:
-            arglist.append(args.srcport[0])
+            argdictlist["Srcport"] = args.srcport[0]
         if args.destport != None:
-            arglist.append(args.destport[0])
+            argdictlist["Destport"] = args.destport[0]
         if args.srcmac != None:
-            arglist.append(args.srcmac[0])
+            argdictlist["Srcmac"] = args.srcmac[0]
         if args.destmac != None:
-            arglist.append(args.destmac[0])
+            # Destination MAC Address
+            argdictlist["Destmac"] = args.destmac[0]
         if args.date != None:
             # Month and day
-            arglist.append(args.date[0][0:2])
-            arglist.append(args.date[0][2:4])
+            argdictlist["Month"] = args.date[0][0:2]
+            argdictlist["Day"] = args.date[0][2:4]
         if args.time != None:
-            arglist.append(args.time[0][0:2])
-            arglist.append(args.time[0][2:4])
+            argdictlist["Hour"] = args.time[0][0:2]
+            argdictlist["Minute"] = args.time[0][2:4]
 
+        # Removes Keys with NONE value type
+        clean = {}
+
+        # Removing all values from dictionary that have a key with a value of blank
+        argdictlist
+        for k, v in argdictlist.items():
+            if v != "":
+                clean[k] = v
+
+        # Redefine the dictionary with the cleaned one
+        argdictlist = clean
 
     # the plan: upon entering an argument, say if someone searches for -dest 3.3.3.3, then it will check if 
     # the destination ip matches that
@@ -131,51 +145,52 @@ def monitor(args):
     # if not all entered arg values are in the packet list
     # DO NOT print packet
 
-    # Checks if ANY of the argument values or NOT NONE
-    # If ANY of them are NOT NONE, then it can do the filter functionality
-
         # Packets are constantly received
-        packetlist = []
+        packetdictlist = {"Destination":"", "Source":"", "Protocol":"", "Srcport":"", "Destport":"", "Srcmac":"", "Destmac":"", "Month":"", "Day":"", "Hour":"", "Minute":""}
+
         # List of months for the date argument
         months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
         inet_data, addr = conn.recvfrom(65536) # buffersize
         dst_mac, src_mac, L2_proto, data = L2_frame(inet_data)
-        packetlist.append(dst_mac)
-        packetlist.append(src_mac)
+        packetdictlist["Destmac"] = dst_mac
+        packetdictlist["Srcmac"] = src_mac
         proto = ""
         # Ethernet frame ID 8 is IPv4
         if L2_proto == 8:
             (time_to_live, L3_proto, src_IP, dst_IP, data) = L3_packet(data)
             packet_num += 1
-            packetlist.append(src_IP)
-            packetlist.append(dst_IP)
+            packetdictlist["Source"] = src_IP
+            packetdictlist["Destination"] = dst_IP
+        else:
+            packet_num += 1
         # IP Protocol ID 1 is ICMP
         if L3_proto == 1:
             icmp_type, checksum, data = icmp_unpack(data)
             proto = "ICMP"
-            packetlist.append(proto)
+            packetdictlist["Protocol"] = proto
         # IP protocol ID 6 is TCP
         elif L3_proto == 6:
             (src_port, dst_port, seq, ack, data) = tcp_unpack(data)
             proto = "TCP"
-            packetlist.append(src_port)
-            packetlist.append(dst_port)
-            packetlist.append(proto)
+            packetdictlist["Srcport"] = src_port
+            packetdictlist["Destport"] = dst_port
+            packetdictlist["Protocol"] = proto
         # IP protocol ID 17 is UDP
         elif L3_proto == 17:
             src_port, dst_port, size, data = udp_unpack(data)
             proto = "UDP"
-            packetlist.append(src_port)
-            packetlist.append(dst_port)
-            packetlist.append(proto)
+            packetdictlist["Srcport"] = src_port
+            packetdictlist["Destport"] = dst_port
+            packetdictlist["Protocol"] = proto
 
-        packetlist.append(datetime_month)
-        packetlist.append(datetime_day)
-        packetlist.append(datetime_hour) 
-        packetlist.append(datetime_min)
-        
-        #print(arglist)
-        #print(packetlist)
+        packetdictlist["Month"] = str(datetime_month).zfill(2)
+        packetdictlist["Day"] = datetime_day
+        packetdictlist["Hour"] = datetime_hour
+        packetdictlist["Minute"] = datetime_min
+
+        # Turn dictionaries into sets
+        argdictset = set(argdictlist.items())
+        packetdictset = set(packetdictlist.items())
 
 
         # If every argument is Null, then packets print normally
@@ -187,16 +202,18 @@ def monitor(args):
                 print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
          
             print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
+            clock.sleep(0.2)
 
-        elif set(arglist).issubset(packetlist) == True:
+        elif argdictset.issubset(packetdictset) == True:
             print(f"| Num: {packet_num} | Src MAC: {src_mac} | Dest MAC: {dst_mac} ", end='')
             
             # Ethernet frame ID 8 is IPv4
             if L2_proto == 8:
                 print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
          
-            print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
-      
+            print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {str(months[datetime_month-1])} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
+            clock.sleep(0.2)
+
 
 
 # Unpacking Layer 2 (Data Link) frames by taking out first 14 bytes
@@ -341,7 +358,7 @@ if __name__ == '__main__':
                 "[0-9a-fA-F]{4}\\." +
                 "[0-9a-fA-F]{4})$")
         p = re.compile(regex)
-        if (re.search(p, args.srcmac[0])):
+        if (re.search(p, args.destmac[0])):
             pass
         else:
             sys.exit("Entered Destination MAC address argument was not the proper syntax! Reenter MAC address with this syntax: 00:00:00:00:00:00 or 00-00-00-00-00-00\nExiting Program...")
