@@ -6,6 +6,7 @@ import re
 import time
 import os
 import platform
+import scapy.all as scapy
 from datetime import datetime
 
 # Code by Mackenzie Cleland, 2023
@@ -19,11 +20,46 @@ from datetime import datetime
 # Line 3 = UPPER port limit
 # Any deviation from this format WILL cause issues!!!
 
+# IP and upper/lower port limits need not be defined globally, as they actually don't need to be passed directly
+# genConfig() generates them in the first place, and pipes them to config.txt
+# readConfig() reads those same values from config.txt, so variable names don't matter
+# hostScan() does an entirely-customized scan, so again, variable names don't matter
+
+# Special thanks to Isaac Privett, for his advice on extending the functionality of this script
+
 
 def scanHost(address, low, up):  # Scans specified IP address and ports, either from config.txt or according to user specifications
     timea = datetime.now()
+    aflag = 0  # Flag determining whether or not ARP table and/or banners will be scanned: 0 = neither; 1 = banners only; 2 = ARP table only; 3 = both
 
-    print("Starting port scanning operation...")    # Prompt
+    # Preliminary options for banner and ARP table scanning functionality
+    while True:
+        prompta = input("Would you like to scan each port for its banners? Y/N\n")
+        if prompta == "Y" or prompta == "y":
+            print("Banners will be scanned for each port.")
+            aflag = aflag + 1  # aflag = 1
+            break
+        elif prompta == "N" or prompta == "n":
+            print("Banners will not be scanned for any ports.")
+            break
+        else:
+            print("Error: Improper input detected. Please try again.")
+
+    while True:
+        promptb = input("Would you like to scan each port for its ARP table? Y/N\n")
+        if promptb == "Y" or promptb == "y":
+            print("ARP tables will be scanned for each port.")
+            aflag = aflag + 2  # This will result in aflag = 2 or aflag = 3, depending on the previous user input; either way, it should be correct.
+            break
+        elif promptb == "N" or promptb == "n":
+            print("ARP tables will not be scanned for any port.")
+            break
+        else:
+            print("Error: Improper input detected. Please try again.")
+
+    # Actual scanning process
+    # Note to self: If breaking up the parameter checks into their own function, remember to include variable bflag in this section as a placeholder/prototype!
+    print("Starting port scanning operation...")
     time.sleep(3)
     print(f"Scanning ports {low} - {up - 1}...")
     try:
@@ -35,13 +71,17 @@ def scanHost(address, low, up):  # Scans specified IP address and ports, either 
             else:
                 print(f"Port {p} is closed!")
             csocket.close()
+            # Put banner check here?
+            if aflag == 2 or aflag == 3:  # ARP table check
+                table = scapy.ARP()
+                print(f"    For port {p}, {table.summary()}")
     except KeyboardInterrupt:
         print("Keyboard interrupt detected. Exiting program.")
         sys.exit()
     except socket.gaierror:
         print("Critical Error: Failed to resolve hostname. Exiting program.")
         sys.exit()
-    except socket.error():
+    except socket.herror():
         print("Critical Error: Failed to connect to server. Exiting program.")
         sys.exit()
 
@@ -179,3 +219,10 @@ def main():     # Main flow control for program
 
 
 main()
+
+
+# TO DO:
+# Implement checking for banners/services per port (banners are service-specific, not host-specific!!!)
+# Integrate these checks into the config file (make parameter checks into their own function?)
+# Implement port scanning for multiple non-continuous port numbers (i.e., 4, 1408, etc.) -- this is a secondary concern, as it is not crucial functionality
+# Consider implementing portable script execution
