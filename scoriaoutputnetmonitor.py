@@ -1,7 +1,6 @@
 import argparse
 import json
 import os
-from os.path import exists
 import time as clock
 import socket
 import struct
@@ -11,35 +10,32 @@ import subprocess
 import re
 import sys
 import ipaddress
-import math
 
 # Code by Arthur Kutepov, Jomel Jay 2023
 
-# The plan:
-# monitor() gets network packet info
-# that info is put into variables
-# Print the variables out like you did in your output code
-# Argparse is now used to filter for particular network data
-# If any packets are coming from 1.1.1.1
-# and you want to check for only those packets
-# you type: python3 scoriaoutputnetmonitor.py -dest 1.1.1.1
-# and it will show you only the packets coming from that address
+# The Plan:
+# Find a way to use subprocessing
+# Make a way that a user can input a previously printed packet 
 
 def monitor(args):
+    # Makes a socket connection
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
-    datetime_month = int(datetime.datetime.now().strftime("%m"))#.strftime("%Y-%m-%d %H:%M:%S")
-    datetime_day = datetime.datetime.now().strftime('%d')
-    datetime_hour = datetime.datetime.now().strftime("%H")
-    datetime_min = datetime.datetime.now().strftime("%M")
+    # Network Packet counter
     packet_num = 0
+    # Path for argument changing json txt file
     path = "arg.txt"
     
     # local list variable to store json namespace data
     mydict = {}
-    # Checks if newly created txt file exists
-    # if so, the arguments are then changed in real time
     while True:
-        if exists(path):
+        # Separated the month, day, hour and minute of the current time
+        datetime_month = int(datetime.datetime.now().strftime("%m"))#.strftime("%Y-%m-%d %H:%M:%S")
+        datetime_day = datetime.datetime.now().strftime('%d')
+        datetime_hour = datetime.datetime.now().strftime("%H")
+        datetime_min = datetime.datetime.now().strftime("%M")
+        # Checks if newly created txt file exists
+        # if so, the arguments are then changed in real time
+        if os.path.exists(path):
             with open(path, "r") as f:
                 mydict = json.load(f)
                 f.close()
@@ -64,6 +60,8 @@ def monitor(args):
                 args.date = mydict["date"]
             if mydict["time"] != None:
                 args.time = mydict["time"]
+            if mydict["clear"] != None:
+                args.clear = mydict["clear"]
         else:
             pass
 
@@ -96,19 +94,39 @@ def monitor(args):
         if args.time != None and args.time[0] == 'none':
             args.time = None
 
+        # If the Clear argument from the json file is labelled True, then it will clear
+        # every other argument
+        if args.clear == True:
+            args.destination = None
+            args.source = None
+            args.protocol = None
+            args.srcport = None
+            args.destport = None
+            args.srcmac = None
+            args.destmac = None
+            args.date = None
+            args.time = None
+
+        # Dictionary keys to compare to packet info
         argdictlist = {"Destination":"", "Source":"", "Protocol":"", "Srcport":"", "Destport":"", "Srcmac":"", "Destmac":"", "Month":"", "Day":"", "Hour":"", "Minute":""}
 
         if args.destination != None:
+            # Destination IP Address
             argdictlist["Destination"] = args.destination[0]
         if args.source != None:
+            # Source IP Address
             argdictlist["Source"] = args.source[0]
         if args.protocol != None:
+            # Protocol
             argdictlist["Protocol"] = args.protocol[0]
         if args.srcport != None:
+            # Source Port
             argdictlist["Srcport"] = args.srcport[0]
         if args.destport != None:
+            # Destination Port
             argdictlist["Destport"] = args.destport[0]
         if args.srcmac != None:
+            # Source MAC Address
             argdictlist["Srcmac"] = args.srcmac[0]
         if args.destmac != None:
             # Destination MAC Address
@@ -136,10 +154,9 @@ def monitor(args):
     # the plan: upon entering an argument, say if someone searches for -dest 3.3.3.3, then it will check if 
     # the destination ip matches that
     # and if it does, it will print the packet
-    # This will involve a lot of trial and error
 
-    # put all packet information into a list
-    # put all argument values in a list
+    # put all packet information into a dictionary
+    # put all argument values in a dictionary
     # if all the entered argument values are in the packet list
     # print that packet
     # if not all entered arg values are in the packet list
@@ -158,6 +175,7 @@ def monitor(args):
         # Ethernet frame ID 8 is IPv4
         if L2_proto == 8:
             (time_to_live, L3_proto, src_IP, dst_IP, data) = L3_packet(data)
+            url, alias, addresslist = dns_host_lookup(src_IP)
             packet_num += 1
             packetdictlist["Source"] = src_IP
             packetdictlist["Destination"] = dst_IP
@@ -183,6 +201,7 @@ def monitor(args):
             packetdictlist["Destport"] = dst_port
             packetdictlist["Protocol"] = proto
 
+        # Adds a leading zero to the month
         packetdictlist["Month"] = str(datetime_month).zfill(2)
         packetdictlist["Day"] = datetime_day
         packetdictlist["Hour"] = datetime_hour
@@ -199,20 +218,33 @@ def monitor(args):
    
             # Ethernet frame ID 8 is IPv4
             if L2_proto == 8:
-                print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
+                if url != None:
+                    print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} | URL: {url}", end='')
+                else:
+                    print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
+
+            else:
+                print(f"| {L2_proto} ", end='')
+                
          
             print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
-            clock.sleep(0.2)
+            clock.sleep(0.5)
 
         elif argdictset.issubset(packetdictset) == True:
             print(f"| Num: {packet_num} | Src MAC: {src_mac} | Dest MAC: {dst_mac} ", end='')
             
             # Ethernet frame ID 8 is IPv4
             if L2_proto == 8:
-                print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
+                if url != None:
+                    print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} | URL: {url}", end='')
+                else:
+                    print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
          
             print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {str(months[datetime_month-1])} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
-            clock.sleep(0.2)
+            clock.sleep(0.5)
+            
+
+            
 
 
 
@@ -263,6 +295,12 @@ def udp_unpack(data):
    src_port, dst_port, size = struct.unpack('! H H 2x H', data[:8])
    return src_port, dst_port, size, data[8:]
 
+def dns_host_lookup(addr):
+    try:
+        return socket.gethostbyaddr(addr)
+    except socket.herror:
+        return None, None, None
+
 
 # Function to format multi-line data
 def line_format(prefix, string, size=80):
@@ -273,8 +311,6 @@ def line_format(prefix, string, size=80):
          size -= 1
    return '\n'.join([prefix + line for line in textwrap.wrap(string, size)])
 
-
-# Print function. All arguments are sent here and printed
 
 if __name__ == '__main__':
     # parser object
@@ -289,6 +325,8 @@ if __name__ == '__main__':
     parser.add_argument("-dm" , "--destmac", type=str, nargs=1, metavar="dest_mac", default=None, help="Specify your desired Destination Mac address for filtration; Syntax = 00:00:00:00:00:00")
     parser.add_argument("-d", "--date", type=str, nargs=1, metavar="date", default=None, help="Specify your desired date of packet creation for filtration; Syntax = MMdd")
     parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Specify your desired time of packet creation for filtration in 24 hour format; Syntax = HHmm")
+    parser.add_argument("-c", "--clear", action="store_true", help="Clear all already entered arguments")
+
 
     args = parser.parse_args()
 
