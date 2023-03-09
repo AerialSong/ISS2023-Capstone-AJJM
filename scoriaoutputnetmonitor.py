@@ -10,6 +10,9 @@ import subprocess
 import re
 import sys
 import ipaddress
+import math
+
+PIPEPATH = f'./packetlogs/packetext{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.txt'
 
 # Code by Arthur Kutepov, Jomel Jay 2023
 
@@ -17,18 +20,49 @@ import ipaddress
 # Find a way to use subprocessing
 # Make a way that a user can input a previously printed packet 
 
-def monitor(args):
+'''
+
+The Plan:
+send extended packet info to a file, line by line with /n characters so it's only
+one packet per line
+
+subprocess.Popen(['gnome-terminal', '-e', 'tail -f %s' % PIPE_PATH])
+
+while tailing that file, it will ask for player input: packet number
+
+if the entered value matches with a packet number, that packet will print with the data and all
+
+the program then asks if you'd like to print another packet
+
+The extended data won't be as in depth as something like Wireshark, but it will be satisfactory for small businesses
+
+'''
+
+def monitorx(args):
     # Makes a socket connection
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
     # Network Packet counter
     packet_num = 0
+    format_star1 = "    *"
+    format_star2 = "\t*"
+    format_tab = "\t   "
     # Path for argument changing json txt file
     path = "arg.txt"
+
+    # Checks if packetlogs directory exists within current directory
+    # If not, it will create that directory
+    if os.path.exists('./packetlogs') == False:
+        os.makedirs('./packetlogs')
+    if os.path.exists(PIPEPATH) == False:
+        fp = open(PIPEPATH, 'x')
+        fp.close()
+    
     
     # local list variable to store json namespace data
     mydict = {}
     while True:
         # Separated the month, day, hour and minute of the current time
+        datetime_now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         datetime_month = int(datetime.datetime.now().strftime("%m"))#.strftime("%Y-%m-%d %H:%M:%S")
         datetime_day = datetime.datetime.now().strftime('%d')
         datetime_hour = datetime.datetime.now().strftime("%H")
@@ -211,6 +245,19 @@ def monitor(args):
         argdictset = set(argdictlist.items())
         packetdictset = set(packetdictlist.items())
 
+        # Sends extended packet details to a txt file, named accordingly by date and time, for advanced analysis
+        if L2_proto == 8:
+            f = open(PIPEPATH, 'a+')
+            # ICMP
+            if L3_proto == 1:
+                f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "ICMP Packet - Type: %s, Checksum: %d\n" % (icmp_type, checksum) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+            #TCP
+            if L3_proto == 6:
+                f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %s, Ack: %s\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+            #UDP
+            if L3_proto == 17:
+                f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" % (src_port, dst_port, size) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+            f.close()
 
         # If every argument is Null, then packets print normally
         if args.destination == None and args.source == None and args.protocol == None and args.srcport == None and args.destport == None and args.srcmac == None and args.destmac == None and args.date == None and args.time == None:
@@ -222,9 +269,6 @@ def monitor(args):
                     print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} | URL: {url}", end='')
                 else:
                     print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
-
-            else:
-                print(f"| {L2_proto} ", end='')
                 
          
             print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
@@ -242,9 +286,8 @@ def monitor(args):
          
             print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {str(months[datetime_month-1])} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
             clock.sleep(0.5)
-            
 
-            
+
 
 
 
@@ -311,6 +354,8 @@ def line_format(prefix, string, size=80):
          size -= 1
    return '\n'.join([prefix + line for line in textwrap.wrap(string, size)])
 
+
+# Print function. All arguments are sent here and printed
 
 if __name__ == '__main__':
     # parser object
@@ -421,14 +466,10 @@ if __name__ == '__main__':
 
     # Executing the Program
     try: 
-        monitor(args)
+        monitorx(args)
 
     except KeyboardInterrupt:
         pass
 
-    #printargs(args)
-    # To do:
-    # You have your output code, this one, and you have a second script which takes a variable from this one and changes it and sends it back to this one
-    # both scripts are running at the same time.
 
     # Think about a hypothetical client that this product is made for. Decide what they will want and how you are going to implement it.
