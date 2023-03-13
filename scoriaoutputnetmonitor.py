@@ -42,6 +42,9 @@ The extended data won't be as in depth as something like Wireshark, but it will 
 def monitorx(args):
     # Makes a socket connection
     conn = socket.socket(socket.AF_PACKET, socket.SOCK_RAW, socket.ntohs(3))
+    tcpSerSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcpSerSock.bind(('localhost', 8888))
+    tcpSerSock.listen(5)
     # Network Packet counter
     packet_num = 0
     format_star1 = "    *"
@@ -57,7 +60,7 @@ def monitorx(args):
     if os.path.exists(PIPEPATH) == False:
         fp = open(PIPEPATH, 'x')
         fp.close()
-    
+
     
     # local list variable to store json namespace data
     mydict = {}
@@ -210,11 +213,13 @@ def monitorx(args):
         # Ethernet frame ID 8 is IPv4
         if L2_proto == 8:
             (time_to_live, L3_proto, src_IP, dst_IP, data) = L3_packet(data)
-            url, alias, addresslist = dns_host_lookup(src_IP)
+            #url, alias, addresslist = dns_host_lookup(src_IP)
+            tcpCliSock, host = tcpSerSock.accept()
             packet_num += 1
             packetdictlist["Source"] = src_IP
             packetdictlist["Destination"] = dst_IP
         else:
+            (time_to_live, L3_proto, src_IP, dst_IP, data) = L3_packet(data)
             packet_num += 1
         # IP Protocol ID 1 is ICMP
         if L3_proto == 1:
@@ -223,7 +228,7 @@ def monitorx(args):
             packetdictlist["Protocol"] = proto
         # IP protocol ID 6 is TCP
         elif L3_proto == 6:
-            (src_port, dst_port, seq, ack, data) = tcp_unpack(data)
+            src_port, dst_port, seq, ack, data = tcp_unpack(data)
             proto = "TCP"
             packetdictlist["Srcport"] = src_port
             packetdictlist["Destport"] = dst_port
@@ -235,6 +240,8 @@ def monitorx(args):
             packetdictlist["Srcport"] = src_port
             packetdictlist["Destport"] = dst_port
             packetdictlist["Protocol"] = proto
+        else:
+            proto = L3_proto
 
         # Adds a leading zero to the month
         packetdictlist["Month"] = str(datetime_month).zfill(2)
@@ -254,26 +261,34 @@ def monitorx(args):
                 f = open(PIPEPATH, 'a+')
                 # ICMP
                 if L3_proto == 1:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "ICMP Packet - Type: %s, Checksum: %d\n" % (icmp_type, checksum) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, host) + format_star1 + "ICMP Packet - Type: %s, Checksum: %d\n" % (icmp_type, checksum) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
                 #TCP
-                if L3_proto == 6:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %s, Ack: %s\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+                elif L3_proto == 6:
+                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, host) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %d, Ack: %d\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
                 #UDP
-                if L3_proto == 17:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" % (src_port, dst_port, size) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+                elif L3_proto == 17:
+                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, host) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+                else:
+                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, host) + "\n" + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
                 f.close()
             print(f"| Num: {packet_num} | Src MAC: {src_mac} | Dest MAC: {dst_mac} ", end='')
    
             # Ethernet frame ID 8 is IPv4
             if L2_proto == 8:
-                if url != None:
-                    print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} | URL: {url}", end='')
+                if host != None:
+                    print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} | URL: {host} ", end='')
                 else:
                     print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
+            
+            # If ethernet frame is not IPv4
+            else:
+                print(f"| L3 protocol ID: {L3_proto} ", end='')
                 
-         
-            print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
-            clock.sleep(0.2)
+            # If the Layer 3 protocol is not ICMP, TCP or UDP it will not print these
+            if L3_proto == 1 or L3_proto == 6 or L3_proto == 17:
+                print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} ", end='')
+            
+            print(f"|Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
 
         elif argdictset.issubset(packetdictset) == True:
             # Sends extended packet details to a txt file, named accordingly by date and time, for advanced analysis
@@ -281,25 +296,34 @@ def monitorx(args):
                 f = open(PIPEPATH, 'a+')
                 # ICMP
                 if L3_proto == 1:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "ICMP Packet - Type: %s, Checksum: %d\n" % (icmp_type, checksum) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, host) + format_star1 + "ICMP Packet - Type: %s, Checksum: %d\n" % (icmp_type, checksum) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
                 #TCP
-                if L3_proto == 6:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %s, Ack: %s\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+                elif L3_proto == 6:
+                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, host) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %d, Ack: %d\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
                 #UDP
-                if L3_proto == 17:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" % (src_port, dst_port, size) + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+                elif L3_proto == 17:
+                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, host) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
+                else:
+                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, host) + "\n" + format_star2 + "Data:\n" + line_format(format_tab, data) + '\n')
                 f.close()
             print(f"| Num: {packet_num} | Src MAC: {src_mac} | Dest MAC: {dst_mac} ", end='')
-            
+   
             # Ethernet frame ID 8 is IPv4
             if L2_proto == 8:
-                if url != None:
-                    print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} | URL: {url}", end='')
+                if host != None:
+                    print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} | URL: {host} ", end='')
                 else:
                     print(f"| Dest IP: {dst_IP} | Source IP: {src_IP} ", end='')
-         
-            print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} | Date: {str(months[datetime_month-1])} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
-            clock.sleep(0.2)
+            
+            # If ethernet frame is not IPv4
+            else:
+                print(f"| L3 protocol ID: {L3_proto} ", end='')
+                
+            # If the Layer 3 protocol is not ICMP, TCP or UDP it will not print these
+            if L3_proto == 1 or L3_proto == 6 or L3_proto == 17:
+                print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} ", end='')
+            
+            print(f"|Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
 
 
 
@@ -351,6 +375,7 @@ def tcp_unpack(data):
 def udp_unpack(data):
    src_port, dst_port, size = struct.unpack('! H H 2x H', data[:8])
    return src_port, dst_port, size, data[8:]
+
 
 def dns_host_lookup(addr):
     try:
