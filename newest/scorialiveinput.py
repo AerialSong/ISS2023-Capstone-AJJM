@@ -22,6 +22,7 @@ def main():
     parser.add_argument("-dm" , "--destmac", type=str, nargs=1, metavar="dest_mac", default=None, help="Specify your desired Destination Mac address for filtration; Syntax = 00:00:00:00:00:00")
     parser.add_argument("-d", "--date", type=str, nargs=1, metavar="date", default=None, help="Specify your desired date of packet creation for filtration; Syntax = MMdd")
     parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Specify your desired time of packet creation for filtration; Syntax = HHmm")
+    parser.add_argument("-c", "--clear", action="store_true", help="Clear all already entered arguments")
 
     args = parser.parse_args()
 
