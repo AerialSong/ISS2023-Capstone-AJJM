@@ -14,6 +14,15 @@ import ipaddress
 import math
 import netMonitor as netmon
 
+'''
+The plan:
+
+Ask user if they want to make a log
+If yes, make log and write to it like normal
+
+If no, skip the logging
+'''
+
 PIPEPATH = f'./packetlogs/packetext{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.txt'
 
 # Code by Arthur Kutepov, Jomel Jay 2023
