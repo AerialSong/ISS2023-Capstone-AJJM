@@ -222,7 +222,13 @@ main()
 
 
 # TO DO:
-# Implement checking for banners/services per port (banners are service-specific, not host-specific!!!)
+# Implement checking for banners/services (ports are service-specific, not host-specific!!!)
 # Integrate these checks into the config file (make parameter checks into their own function?)
 # Implement port scanning for multiple non-continuous port numbers (i.e., 4, 1408, etc.) -- this is a secondary concern, as it is not crucial functionality
 # Consider implementing portable script execution
+
+# For port ranges, consider implementing a for loop based on an int input value, i.e.
+# cycles = int(input("How many ranges of ports would you like to scan?"))
+# for i in cycles:
+#   custScan()
+#   etc., etc.
