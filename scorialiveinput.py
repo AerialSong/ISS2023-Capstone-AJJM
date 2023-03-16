@@ -1,14 +1,6 @@
 import argparse
 import json
 
-'''
-copy paste the parser object and argument info
-upon command entry, send command to txt file
-parseoutput reads txt file and takes command
-variables change
-voila
-'''
-
 def main():
     # parser object
     parser = argparse.ArgumentParser(description="A lightweight command-line based Network Traffic Analyzer")
