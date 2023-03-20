@@ -20,7 +20,6 @@ If yes, make log and write to it like normal
 If no, skip the logging
 '''
 
-#os.system("mkdir /home/$USER/Scoria-IDS/packetlogs")
 PIPEPATH = f'./packetlogs/packetext{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.txt'
 
 # Code by Arthur Kutepov, Jomel Jay 2023
@@ -53,8 +52,10 @@ def monitorx(args):
     format_tab = "\t   "
     # Path for argument changing json txt file
     path = "arg.txt"
-    
-    logging = input("Would you like to save a log of your sniffing session? Y/N: ")
+
+    logging = input("Would you like to save a log of your sniffing session? (Default value N) Y/N: ")
+    if logging == '':
+        logging = 'n'
     yes = ['yes', 'Yes', 'Y', 'y']
     no = ['no', 'No', 'N', 'n']
 
@@ -66,6 +67,8 @@ def monitorx(args):
         if os.path.exists(PIPEPATH) == False:
             fp = open(PIPEPATH, 'x')
             fp.close()
+    elif logging in no:
+        pass
 
     
     # local list variable to store json namespace data
@@ -162,6 +165,7 @@ def monitorx(args):
             argdictlist["Source"] = args.source[0]
         if args.protocol != None:
             # Protocol
+            args.protocol[0] = args.protocol[0].upper()
             argdictlist["Protocol"] = args.protocol[0]
         if args.srcport != None:
             # Source Port
@@ -195,17 +199,6 @@ def monitorx(args):
         # Redefine the dictionary with the cleaned one
         argdictlist = clean
 
-    # the plan: upon entering an argument, say if someone searches for -dest 3.3.3.3, then it will check if 
-    # the destination ip matches that
-    # and if it does, it will print the packet
-
-    # put all packet information into a dictionary
-    # put all argument values in a dictionary
-    # if all the entered argument values are in the packet list
-    # print that packet
-    # if not all entered arg values are in the packet list
-    # DO NOT print packet
-
         # Packets are constantly received
         packetdictlist = {"Destination":"", "Source":"", "Protocol":"", "Srcport":"", "Destport":"", "Srcmac":"", "Destmac":"", "Month":"", "Day":"", "Hour":"", "Minute":""}
 
@@ -216,6 +209,7 @@ def monitorx(args):
         packetdictlist["Destmac"] = dst_mac
         packetdictlist["Srcmac"] = src_mac
         proto = ""
+        
         # Ethernet frame ID 8 is IPv4
         if L2_proto == 8:
             (time_to_live, L3_proto, src_IP, dst_IP, data) = netmon.L3_packet(data)
@@ -226,11 +220,13 @@ def monitorx(args):
         else:
             (time_to_live, L3_proto, src_IP, dst_IP, data) = netmon.L3_packet(data)
             packet_num += 1
+
         # IP Protocol ID 1 is ICMP
         if L3_proto == 1:
             icmp_type, checksum, data = netmon.icmp_unpack(data)
             proto = "ICMP"
             packetdictlist["Protocol"] = proto
+
         # IP protocol ID 6 is TCP
         elif L3_proto == 6:
             src_port, dst_port, seq, ack, data = netmon.tcp_unpack(data)
@@ -238,6 +234,7 @@ def monitorx(args):
             packetdictlist["Srcport"] = src_port
             packetdictlist["Destport"] = dst_port
             packetdictlist["Protocol"] = proto
+
         # IP protocol ID 17 is UDP
         elif L3_proto == 17:
             src_port, dst_port, size, data = netmon.udp_unpack(data)
@@ -273,11 +270,11 @@ def monitorx(args):
                         f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %d, Ack: %d\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
                     #UDP
                     elif L3_proto == 17:
-                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" % (src_port, dst_port, size) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
                     else:
                         f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + "\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
                     f.close()
-            if logging in no:
+            elif logging in no:
                 pass
             print(f"| Num: {packet_num} | Src MAC: {src_mac} | Dest MAC: {dst_mac} ", end='')
    
@@ -311,11 +308,11 @@ def monitorx(args):
                         f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %d, Ack: %d\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
                     #UDP
                     elif L3_proto == 17:
-                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" % (src_port, dst_port, size) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
                     else:
                         f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + "\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
                     f.close()
-            if logging in no:
+            elif logging in no:
                 pass
             print(f"| Num: {packet_num} | Src MAC: {src_mac} | Dest MAC: {dst_mac} ", end='')
    
@@ -341,18 +338,18 @@ def monitorx(args):
 
 if __name__ == '__main__':
     # parser object
-    parser = argparse.ArgumentParser(description="A lightweight command-line based Network Traffic Analyzer")
+    parser = argparse.ArgumentParser(description="A lightweight command-line based Network Packet Sniffer")
 
     parser.add_argument("-dest", "--destination", type=str, nargs=1, metavar="destination_ip", default=None, help="Specify your desired Destination IP Address for filtration; Syntax = 111.222.333.444")
-    parser.add_argument("-s", "--source", type=str, nargs=1, metavar="source_ip", default=None, help="Specify your desired source IP Address for filtration; Syntax = 111.222.333.444")
-    parser.add_argument("-pr", "--protocol", type=str, nargs=1, metavar="protocol_name", default=None, help="Specify your desired protocol name for filtration; TCP or UDP")
+    parser.add_argument("-s", "--source", type=str, nargs=1, metavar="source_ip", default=None, help="Specify your desired Source IP Address for filtration; Syntax = 111.222.333.444")
+    parser.add_argument("-pr", "--protocol", type=str, nargs=1, metavar="protocol_name", default=None, help="Specify your desired Protocol name for filtration; TCP, UDP, ICMP")
     parser.add_argument("-sp", "--srcport", type=str, nargs=1, metavar="src_port_num", default=None, help="Specify your desired Source Port number for filtration")
     parser.add_argument("-dp", "--destport", type=str, nargs=1, metavar="dest_port_num", default=None, help="Specify your desired Destination Port number for filtration")
     parser.add_argument("-sm" , "--srcmac", type=str, nargs=1, metavar="src_mac", default=None, help="Specify your desired Source Mac address for filtration; Syntax = 00:00:00:00:00:00")
     parser.add_argument("-dm" , "--destmac", type=str, nargs=1, metavar="dest_mac", default=None, help="Specify your desired Destination Mac address for filtration; Syntax = 00:00:00:00:00:00")
     parser.add_argument("-d", "--date", type=str, nargs=1, metavar="date", default=None, help="Specify your desired date of packet creation for filtration; Syntax = MMdd")
     parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Specify your desired time of packet creation for filtration in 24 hour format; Syntax = HHmm")
-    parser.add_argument("-c", "--clear", action="store_true", help="Clear all already entered arguments")
+    parser.add_argument("-c", "--clear", action="store_true", help="Clear all already entered arguments//Use in linput.py")
 
 
     args = parser.parse_args()
@@ -375,6 +372,8 @@ if __name__ == '__main__':
 
     if args.protocol != None:
         protolist = ["TCP", "UDP", "ICMP"]
+        if str(args.protocol[0]).isupper == False:
+            args.protocol[0] = str(args.protocol[0]).upper()
         if args.protocol[0] not in protolist:
             sys.exit(f"Protocol not in the list of fliterable protocols. Enter a protocol as it appears in this list: {', '.join(protolist)}")
     else:
@@ -402,31 +401,31 @@ if __name__ == '__main__':
 
     if args.srcmac != None:
         # Regex to check valid MAC address
-        regex = ("^([0-9A-Fa-f]{2}[:-])" +
-                "{5}([0-9A-Fa-f]{2})|" +
-                "([0-9a-fA-F]{4}\\." +
-                "[0-9a-fA-F]{4}\\." +
-                "[0-9a-fA-F]{4})$")
+        regex = ("^([0-9A-F]{2}[:-])" +
+                "{5}([0-9A-F]{2})|" +
+                "([0-9A-F]{4}\\." +
+                "[0-9A-F]{4}\\." +
+                "[0-9A-F]{4})$")
         p = re.compile(regex)
         if (re.search(p, args.srcmac[0])):
             pass
         else:
-            sys.exit("Entered Source MAC address argument was not the proper syntax! Reenter MAC address with this syntax: 00:00:00:00:00:00 or 00-00-00-00-00-00\nExiting Program...")
+            sys.exit("Entered Source MAC address argument was not the proper syntax! Reenter MAC address with this syntax, Case Sensitive: 0A:0A:0A:0A:0A:0A or 0A-0A-0A-0A-0A-0A\nExiting Program...")
     else:
         pass
 
     if args.destmac != None:
         # Regex to check valid MAC address
-        regex = ("^([0-9A-Fa-f]{2}[:-])" +
-                "{5}([0-9A-Fa-f]{2})|" +
-                "([0-9a-fA-F]{4}\\." +
-                "[0-9a-fA-F]{4}\\." +
-                "[0-9a-fA-F]{4})$")
+        regex = ("^([0-9A-F]{2}[:-])" +
+                "{5}([0-9A-F]{2})|" +
+                "([0-9A-F]{4}\\." +
+                "[0-9A-F]{4}\\." +
+                "[0-9A-F]{4})$")
         p = re.compile(regex)
         if (re.search(p, args.destmac[0])):
             pass
         else:
-            sys.exit("Entered Destination MAC address argument was not the proper syntax! Reenter MAC address with this syntax: 00:00:00:00:00:00 or 00-00-00-00-00-00\nExiting Program...")
+            sys.exit("Entered Destination MAC address argument was not the proper syntax! Reenter MAC address with this syntax, Case Sensitive: 0A:0A:0A:0A:0A:0A or 0A-0A-0A-0A-0A-0A\nExiting Program...")
     else:
         pass
 
