@@ -9,7 +9,7 @@ import subprocess
 import re
 import sys
 import ipaddress
-import netMonitor as netmon
+import netmon
 
 '''
 The plan:
@@ -53,14 +53,19 @@ def monitorx(args):
     format_tab = "\t   "
     # Path for argument changing json txt file
     path = "arg.txt"
+    
+    logging = input("Would you like to save a log of your sniffing session? Y/N: ")
+    yes = ['yes', 'Yes', 'Y', 'y']
+    no = ['no', 'No', 'N', 'n']
 
     # Checks if packetlogs directory exists within current directory
     # If not, it will create that directory
-    if os.path.exists('./packetlogs') == False:
-        os.makedirs('./packetlogs')
-    if os.path.exists(PIPEPATH) == False:
-        fp = open(PIPEPATH, 'x')
-        fp.close()
+    if logging in yes:
+        if os.path.exists('./packetlogs') == False:
+            os.makedirs('./packetlogs')
+        if os.path.exists(PIPEPATH) == False:
+            fp = open(PIPEPATH, 'x')
+            fp.close()
 
     
     # local list variable to store json namespace data
@@ -257,20 +262,23 @@ def monitorx(args):
         # If every argument is Null, then packets print normally
         if args.destination == None and args.source == None and args.protocol == None and args.srcport == None and args.destport == None and args.srcmac == None and args.destmac == None and args.date == None and args.time == None:
             # Sends extended packet details to a txt file, named accordingly by date and time, for advanced analysis
-            if L2_proto == 8:
-                f = open(PIPEPATH, 'a+')
-                # ICMP
-                if L3_proto == 1:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "ICMP Packet - Type: %s, Checksum: %d\n" % (icmp_type, checksum) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
-                #TCP
-                elif L3_proto == 6:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %d, Ack: %d\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
-                #UDP
-                elif L3_proto == 17:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
-                else:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + "\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
-                f.close()
+            if logging in yes:
+                if L2_proto == 8:
+                    f = open(PIPEPATH, 'a+')
+                    # ICMP
+                    if L3_proto == 1:
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "ICMP Packet - Type: %s, Checksum: %d\n" % (icmp_type, checksum) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                    #TCP
+                    elif L3_proto == 6:
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %d, Ack: %d\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                    #UDP
+                    elif L3_proto == 17:
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                    else:
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + "\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                    f.close()
+            if logging in no:
+                pass
             print(f"| Num: {packet_num} | Src MAC: {src_mac} | Dest MAC: {dst_mac} ", end='')
    
             # Ethernet frame ID 8 is IPv4
@@ -292,20 +300,23 @@ def monitorx(args):
 
         elif argdictset.issubset(packetdictset) == True:
             # Sends extended packet details to a txt file, named accordingly by date and time, for advanced analysis
-            if L2_proto == 8:
-                f = open(PIPEPATH, 'a+')
-                # ICMP
-                if L3_proto == 1:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "ICMP Packet - Type: %s, Checksum: %d\n" % (icmp_type, checksum) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
-                #TCP
-                elif L3_proto == 6:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %d, Ack: %d\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
-                #UDP
-                elif L3_proto == 17:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
-                else:
-                    f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + "\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
-                f.close()
+            if logging in yes:
+                if L2_proto == 8:
+                    f = open(PIPEPATH, 'a+')
+                    # ICMP
+                    if L3_proto == 1:
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "ICMP Packet - Type: %s, Checksum: %d\n" % (icmp_type, checksum) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                    #TCP
+                    elif L3_proto == 6:
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "TCP Segment - Src Port: %d, Dst Port: %d, Seq: %d, Ack: %d\n" % (src_port, dst_port, seq, ack) + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                    #UDP
+                    elif L3_proto == 17:
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + format_star1 + "UDP Segment - Src Port: %d, Dst Port: %d, Size: %d\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                    else:
+                        f.write("Number %d | Date and time: %s\n" % (packet_num, datetime_now) + format_star1 + "Ethernet Frame %d - Dst MAC: %s, Src MAC: %s, Ethernet Protocol ID: %d\n" % (packet_num, dst_mac, src_mac, L2_proto) + format_star1 + "IPv4 Packet - Src IP: %s, Dst IP: %s, IP Protocol ID: %d, TTL: %d, URL: %s\n" % (src_IP, dst_IP, L3_proto, time_to_live, url) + "\n" + format_star2 + "Data:\n" + netmon.line_format(format_tab, data) + '\n')
+                    f.close()
+            if logging in no:
+                pass
             print(f"| Num: {packet_num} | Src MAC: {src_mac} | Dest MAC: {dst_mac} ", end='')
    
             # Ethernet frame ID 8 is IPv4
