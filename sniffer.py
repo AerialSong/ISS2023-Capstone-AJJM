@@ -4,14 +4,11 @@ import json
 import os
 import time as clock
 import socket
-import struct
-import textwrap
 import datetime
 import subprocess
 import re
 import sys
 import ipaddress
-import math
 import netMonitor as netmon
 
 '''
@@ -23,13 +20,10 @@ If yes, make log and write to it like normal
 If no, skip the logging
 '''
 
+#os.system("mkdir /home/$USER/Scoria-IDS/packetlogs")
 PIPEPATH = f'./packetlogs/packetext{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.txt'
 
 # Code by Arthur Kutepov, Jomel Jay 2023
-
-# The Plan:
-# Find a way to use subprocessing
-# Make a way that a user can input a previously printed packet 
 
 '''
 
