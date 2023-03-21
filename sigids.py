@@ -109,7 +109,6 @@ def detect_packet(packet):
       ip_dst = packet[IP].dst
       if not (ip_src.startswith(whitelisted_ips[0]) or ip_src.startswith(whitelisted_ips[1])):
          if not (ip_dst.startswith(whitelisted_ips[0]) or ip_dst.startswith(whitelisted_ips[1])):
-            #print(f'Suspicious IP address detected: Source - {packet[IP].src} | Destination - {packet[IP].dst}')
             sus_alert = f'Suspicious IP address detected: Source - {packet[IP].src} | Destination - {packet[IP].dst}'
             print_gui(sus_alert)
 
@@ -118,7 +117,6 @@ def detect_packet(packet):
       payload = packet[Raw].load
       file_hash = hashlib.sha256(payload).hexdigest()
       if file_hash in suspicious_hashes:
-         #print(f'Suspicious file hash detected: Source - {packet[IP].src} | File Hash - {file_hash}')
          sus_alert = f'Suspicious file hash detected: Source - {packet[IP].src} | File Hash - {file_hash}'
          print_gui(sus_alert)
 
@@ -128,7 +126,6 @@ def detect_packet(packet):
       # Check if the URL matches any of the suspicious URL patterns
       for pattern in suspicious_url_pattern:
          if re.match(pattern, url):
-            #print(f'Suspicious URL pattern detected: Source - {packet[IP].src} | Payload - {payload}')
             sus_alert = f'Suspicious URL pattern detected: Source - {packet[IP].src} | Payload - {payload}'
             print_gui(sus_alert)
 
@@ -138,7 +135,6 @@ def detect_packet(packet):
       payload = str(packet[TCP].payload)
       for pattern in suspicious_payload_pattern:
          if re.search(pattern, payload):
-            #print(f'Suspicious packet payload detected: Source - {packet[IP].src} | Payload - {payload}')
             sus_alert = f'Suspicious packet payload detected: Source - {packet[IP].src} | Payload - {payload}'
             print_gui(sus_alert)
 
@@ -147,7 +143,6 @@ def detect_packet(packet):
       if header in packet:
          for value in suspicious_headers[header]:
             if value in packet[header]:
-               #print(f"Suspicious packet detected: Source - {packet[IP].src} | Payload - {packet.summary()}")
                sus_alert = f"Suspicious packet detected: Source - {packet[IP].src} | Payload - {packet.summary()}"
                print_gui(sus_alert)
 
@@ -158,7 +153,6 @@ def detect_packet(packet):
       expected_length = tcp_header_length + payload_length
       actual_length = len(packet)
       if actual_length > expected_length * 3 or actual_length < expected_length * 0.03:
-         #print(f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}")
          sus_alert = f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}"
          print_gui(sus_alert)
 
