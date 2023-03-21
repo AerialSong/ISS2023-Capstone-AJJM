@@ -140,3 +140,4 @@ def detect_packet(packet):
 
 # Create a packet sniffer using Scapy
 sniff(filter=packet_filter, prn=detect_packet)
+
