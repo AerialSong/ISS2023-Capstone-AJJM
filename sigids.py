@@ -2,11 +2,23 @@ import hashlib
 import re
 from scapy.layers.http import HTTPRequest
 from scapy.all import *
+import tkinter
+from time import sleep
 
 packet_filter = "ip"
+idsGui = tkinter.Tk()
+idsGui.title("Suspicious Alerts!")
+
+idsList = tkinter.Listbox(idsGui, height=5)
+idsList.pack(fill=tkinter.BOTH, expand=True)
+
+def print_gui(content):
+   idsList.insert(tkinter.END, content)  # Add the alert to the Listbox
+   idsGui.update() # Update the GUI
+   sleep(0.5)
 
 # Whitelist IP addresses
-whitelisted_ips = ['192.168.', '10.']
+whitelisted_ips = ['192.168.23', '10.']
 
 # Define suspicious file hashes. Sha-256 hashes are from MalwareBazaar
 suspicious_hashes = ['f0ec980108157002c8ca92507a2caa1f9a2cfa548959c7b1a2533ab7030966ee', 'e8ee3634afde1b13836ca2183216b38956942300ce6f73ac218152cc7baa47f7',
@@ -91,20 +103,24 @@ suspicious_headers = {
 
 # Define a function to detect suspicious packets
 def detect_packet(packet):
-   # Check for suspicious IP addresses
+   #Check for suspicious IP addresses
    if IP in packet:
       ip_src = packet[IP].src
       ip_dst = packet[IP].dst
       if not (ip_src.startswith(whitelisted_ips[0]) or ip_src.startswith(whitelisted_ips[1])):
          if not (ip_dst.startswith(whitelisted_ips[0]) or ip_dst.startswith(whitelisted_ips[1])):
-            print(f'Suspicious IP address detected: Source - {packet[IP].src} | Destination - {packet[IP].dst}')
+            #print(f'Suspicious IP address detected: Source - {packet[IP].src} | Destination - {packet[IP].dst}')
+            sus_alert = f'Suspicious IP address detected: Source - {packet[IP].src} | Destination - {packet[IP].dst}'
+            print_gui(sus_alert)
 
    # Check for suspicious file hashes
    if Raw in packet:
       payload = packet[Raw].load
       file_hash = hashlib.sha256(payload).hexdigest()
       if file_hash in suspicious_hashes:
-         print(f'Suspicious file hash detected: Source - {packet[IP].src} | File Hash - {file_hash}')
+         #print(f'Suspicious file hash detected: Source - {packet[IP].src} | File Hash - {file_hash}')
+         sus_alert = f'Suspicious file hash detected: Source - {packet[IP].src} | File Hash - {file_hash}'
+         print_gui(sus_alert)
 
    #  Check for suspicious URL patterns      
    if packet.haslayer(HTTPRequest):
@@ -112,7 +128,9 @@ def detect_packet(packet):
       # Check if the URL matches any of the suspicious URL patterns
       for pattern in suspicious_url_pattern:
          if re.match(pattern, url):
-            print(f'Suspicious URL pattern detected: Source - {packet[IP].src} | Payload - {payload}')
+            #print(f'Suspicious URL pattern detected: Source - {packet[IP].src} | Payload - {payload}')
+            sus_alert = f'Suspicious URL pattern detected: Source - {packet[IP].src} | Payload - {payload}'
+            print_gui(sus_alert)
 
 
    # Check for suspicious packet payload patterns
@@ -120,14 +138,18 @@ def detect_packet(packet):
       payload = str(packet[TCP].payload)
       for pattern in suspicious_payload_pattern:
          if re.search(pattern, payload):
-               print(f'Suspicious packet payload detected: Source - {packet[IP].src} | Payload - {payload}')
+            #print(f'Suspicious packet payload detected: Source - {packet[IP].src} | Payload - {payload}')
+            sus_alert = f'Suspicious packet payload detected: Source - {packet[IP].src} | Payload - {payload}'
+            print_gui(sus_alert)
 
    # Check for suspicious headers
    for header in suspicious_headers:
       if header in packet:
          for value in suspicious_headers[header]:
             if value in packet[header]:
-               print(f"Suspicious packet detected: Source - {packet[IP].src} | Payload - {packet.summary()}")
+               #print(f"Suspicious packet detected: Source - {packet[IP].src} | Payload - {packet.summary()}")
+               sus_alert = f"Suspicious packet detected: Source - {packet[IP].src} | Payload - {packet.summary()}"
+               print_gui(sus_alert)
 
    # Check for suspicious packet sizes
    if TCP in packet and packet[TCP].payload:
@@ -136,7 +158,16 @@ def detect_packet(packet):
       expected_length = tcp_header_length + payload_length
       actual_length = len(packet)
       if actual_length > expected_length * 3 or actual_length < expected_length * 0.03:
-         print(f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}")
+         #print(f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}")
+         sus_alert = f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}"
+         print_gui(sus_alert)
 
 # Create a packet sniffer using Scapy
-sniff(filter=packet_filter, prn=detect_packet)
+# Making it as a module. Example use: "this_file".sniff(filter=packet_filter, prn=detect_packet)
+if __name__ == "__main__":
+   try: 
+      sniff(filter=packet_filter, prn=detect_packet)
+      idsGui.mainloop()
+
+   except:
+      pass
