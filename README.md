@@ -1,9 +1,9 @@
 Readme for SCORIA v.1.0 All-in-One IDS Suite for Home/Small-Business Infrastructures
 Designed by:
-Joseph Benedith
-Mackenzie Cleland
-Arthur Kutepov
-Jomel Jay Segundo
+    Joseph Benedith
+    Mackenzie Cleland
+    Arthur Kutepov
+    Jomel Jay Segundo
 
 1. Running Scoria
 
