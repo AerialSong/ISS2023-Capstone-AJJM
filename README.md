@@ -7,7 +7,7 @@
 
 <h2>1. Running Scoria</h2>
 
-To run Scoria, simply run:
+To run Scoria, simply run:<br>
     <code>$ sudo python3 launcher.py</code>
 
 **IMPORTANT:** All scripts (along with config.txt, once present) <em>must be in the same folder</em> in order for Scoria to run correctly!!!
@@ -37,6 +37,6 @@ This is detailed below:
 
 <h2>3. Important Information Regarding Live-Input</h2>
 
-In order to perform live-input packet-sniffing, initiate the necessary script by running:
+In order to perform live-input packet-sniffing, initiate the necessary script by running:<br>
 <code>  >>> linput.py</code>
 In the python3 terminal which Scoria starts up, with any necessary arguments in the usual syntax.
