@@ -10,6 +10,7 @@ import re
 import sys
 import ipaddress
 import netmon
+import shlex
 
 '''
 The plan:
@@ -24,23 +25,6 @@ PIPEPATH = f'./packetlogs/packetext{datetime.datetime.now().strftime("%Y-%m-%d_%
 
 # Code by Arthur Kutepov, Jomel Jay 2023
 
-'''
-
-The Plan:
-send extended packet info to a file, line by line with /n characters so it's only
-one packet per line
-
-subprocess.Popen(['gnome-terminal', '-e', 'tail -f %s' % PIPE_PATH])
-
-while tailing that file, it will ask for player input: packet number
-
-if the entered value matches with a packet number, that packet will print with the data and all
-
-the program then asks if you'd like to print another packet
-
-The extended data won't be as in depth as something like Wireshark, but it will be satisfactory for small businesses
-
-'''
 
 def monitorx(args):
     # Makes a socket connection
@@ -53,9 +37,19 @@ def monitorx(args):
     # Path for argument changing json txt file
     path = "arg.txt"
 
+
     # Variations of yes and no in input
-    yes = ['yes', 'Yes', 'Y', 'y']
-    no = ['no', 'No', 'N', 'n']
+    yes = ['yes', 'Yes', 'YES', 'Y', 'y']
+    no = ['no', 'No', "NO", 'N', 'n']
+
+    if len(sys.argv) < 2:
+        wantargs = input("Would you like to filter output for any arguments? (Default Value N) Y/N: ")
+        if wantargs == '':
+            wantargs = 'n'
+        if wantargs in yes:
+            newargs = input("Please input your desired arguments with the intended syntax: ")
+            cmd_args = shlex.split(newargs)
+            subprocess.run(["./sniffer.py"] + cmd_args)
 
     if args.log == None:
         logging = input("Would you like to save a log of your sniffing session with extended details? Warning: File size may be large with sessions with many packets. (Default value N) Y/N: ")
@@ -63,17 +57,6 @@ def monitorx(args):
             logging = 'n'
     else:
         logging = args.log[0]
-
-    # Checks if packetlogs directory exists within current directory
-    # If not, it will create that directory
-    if logging in yes:
-        if os.path.exists('./packetlogs') == False:
-            os.makedirs('./packetlogs')
-        if os.path.exists(PIPEPATH) == False:
-            fp = open(PIPEPATH, 'x')
-            fp.close()
-    elif logging in no:
-        pass
 
     # Checks if args.sleep argument has been filled
     # if not, checks if user would like to make output sleep for a chosen length of seconds after each packet
@@ -86,13 +69,25 @@ def monitorx(args):
     else:
         sleeper = args.sleep[0]
 
-    # termin = input("Would you like to launch a new terminal window with which to input new arguments live? (Defualt value N) Y/N: ")
-    # if termin in yes:
-    #     os.setreuid(0, 1000)
-    #     os.system("gnome-terminal")
-    #     os.setreuid(0,0)
-    # elif termin in no:
-    #     pass
+    # Checks if packetlogs directory exists within current directory
+    # If not, it will create that directory
+    if logging in yes:
+        if os.path.exists('./packetlogs') == False:
+            os.makedirs('./packetlogs')
+        if os.path.exists(PIPEPATH) == False:
+            fp = open(PIPEPATH, 'x')
+            fp.close()
+    elif logging in no:
+        pass
+
+    termin = input("Would you like to launch a new terminal window with which to input new arguments live? (Defualt value N) Y/N: ")
+    if termin in yes:
+        # Gets username of logged in user to open terminal
+        username = os.getlogin()
+        subprocess.call(["su", username])
+        subprocess.call(["gnome-terminal", "--window", "--user", username])
+    elif termin in no:
+        pass
         
     
     # local list variable to store json namespace data
@@ -486,6 +481,3 @@ try:
 
 except KeyboardInterrupt:
     pass
-
-
-# Think about a hypothetical client that this product is made for. Decide what they will want and how you are going to implement it.
