@@ -14,11 +14,11 @@ To run Scoria, simply run:<br>
 
 <h2>2. Functionality</h2>
 
-The Scoria All-in-One IDS Suite contains the following functionality:
-Signature-based IDS software
-Live-input packet sniffer
-Port scanning software
-Cloud-based log exportation software
+The Scoria All-in-One IDS Suite contains the following functionality:<br>
+Signature-based IDS software<br>
+Live-input packet sniffer<br>
+Port scanning software<br>
+Cloud-based log exportation software<br>
 
 This is detailed below:
 
