@@ -58,7 +58,7 @@ def monitorx(args):
     no = ['no', 'No', 'N', 'n']
 
     if args.log == None:
-        logging = input("Would you like to save a log of your sniffing session? (Default value N) Y/N: ")
+        logging = input("Would you like to save a log of your sniffing session with extended details? Warning: File size may be large with sessions with many packets. (Default value N) Y/N: ")
         if logging == '':
             logging = 'n'
     else:
@@ -86,11 +86,13 @@ def monitorx(args):
     else:
         sleeper = args.sleep[0]
 
-    #termin = input("Would you like to launch a new terminal window with which to input new arguments live? (Defualt value N) Y/N: ")
-    #if termin in yes:
-    #    os.system("gnome-terminal")
-    #elif termin in no:
-    #    pass
+    # termin = input("Would you like to launch a new terminal window with which to input new arguments live? (Defualt value N) Y/N: ")
+    # if termin in yes:
+    #     os.setreuid(0, 1000)
+    #     os.system("gnome-terminal")
+    #     os.setreuid(0,0)
+    # elif termin in no:
+    #     pass
         
     
     # local list variable to store json namespace data
