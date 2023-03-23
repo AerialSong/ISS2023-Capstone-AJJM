@@ -30,6 +30,7 @@ def runScripts():  # Flow control for main program functionality
    elif choice == 4:
       print("Acknowledged. Exiting program...")
       sys.exit()
+      
    else:
       print("Invalid choice detected! Please try again.")
       print("")
