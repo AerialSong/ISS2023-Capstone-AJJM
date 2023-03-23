@@ -14,26 +14,25 @@ def printBanner():  # Prints the main banner for the program
 
 
 def runScripts():  # Flow control for main program functionality
-   while True:
-      print("Welcome to SCORIA! What would you like to do?")
+   print("Welcome to SCORIA! What would you like to do?")
+   print("")
+   choice = int(input("1. Scan ports\n2. Monitor traffic\n3. Export logs to cloud\n4. Quit program\n"))
+
+   if choice == 1:
+      import ports
+   
+   elif choice == 2:
+      import sniffer
+
+   elif choice == 3:
+      import netIDS
+
+   elif choice == 4:
+      print("Acknowledged. Exiting program...")
+      sys.exit()
+   else:
+      print("Invalid choice detected! Please try again.")
       print("")
-      choice = int(input("1. Scan ports\n2. Monitor traffic\n3. Export logs to cloud\n4. Quit program\n"))
-
-      if choice == 1:
-         import ports
-      
-      elif choice == 2:
-         import sniffer
-
-      elif choice == 3:
-         import netIDS
-
-      elif choice == 4:
-         print("Acknowledged. Exiting program...")
-         sys.exit()
-      else:
-         print("Invalid choice detected! Please try again.")
-         print("")
 
 
 printBanner()
