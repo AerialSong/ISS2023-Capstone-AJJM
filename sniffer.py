@@ -12,6 +12,10 @@ import ipaddress
 import netmon
 import shlex
 
+# Prereq install:
+# gnome-session
+# dbus-x11
+
 '''
 The plan:
 
@@ -80,12 +84,9 @@ def monitorx(args):
     elif logging in no:
         pass
 
-    termin = input("Would you like to launch a new terminal window with which to input new arguments live? (Defualt value N) Y/N: ")
+    termin = input("Would you like to launch a new root terminal window with which to input new arguments live? (Defualt value N) Y/N: ")
     if termin in yes:
-        # Gets username of logged in user to open terminal
-        username = os.getlogin()
-        subprocess.call(["su", username])
-        subprocess.call(["gnome-terminal", "--window", "--user", username])
+        os.system("gnome-terminal")
     elif termin in no:
         pass
         
@@ -481,3 +482,6 @@ try:
 
 except KeyboardInterrupt:
     pass
+
+
+# Think about a hypothetical client that this product is made for. Decide what they will want and how you are going to implement it.
