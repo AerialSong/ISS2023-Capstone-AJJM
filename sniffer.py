@@ -53,11 +53,16 @@ def monitorx(args):
     # Path for argument changing json txt file
     path = "arg.txt"
 
-    logging = input("Would you like to save a log of your sniffing session? (Default value N) Y/N: ")
-    if logging == '':
-        logging = 'n'
+    # Variations of yes and no in input
     yes = ['yes', 'Yes', 'Y', 'y']
     no = ['no', 'No', 'N', 'n']
+
+    if args.log == None:
+        logging = input("Would you like to save a log of your sniffing session? (Default value N) Y/N: ")
+        if logging == '':
+            logging = 'n'
+    else:
+        logging = args.log[0]
 
     # Checks if packetlogs directory exists within current directory
     # If not, it will create that directory
@@ -70,6 +75,23 @@ def monitorx(args):
     elif logging in no:
         pass
 
+    # Checks if args.sleep argument has been filled
+    # if not, checks if user would like to make output sleep for a chosen length of seconds after each packet
+    if args.sleep == None:
+        sleeper = input("How many seconds should the output sleep after printing a packet? (Default value 0): ")
+        if sleeper == '':
+            sleeper = 0
+        if sleeper != '':
+            sleeper = float(sleeper)
+    else:
+        sleeper = args.sleep[0]
+
+    #termin = input("Would you like to launch a new terminal window with which to input new arguments live? (Defualt value N) Y/N: ")
+    #if termin in yes:
+    #    os.system("gnome-terminal")
+    #elif termin in no:
+    #    pass
+        
     
     # local list variable to store json namespace data
     mydict = {}
@@ -109,6 +131,8 @@ def monitorx(args):
                 args.time = mydict["time"]
             if mydict["clear"] != None:
                 args.clear = mydict["clear"]
+            if mydict["sleep"] != None:
+                args.sleep = mydict["sleep"]
         else:
             pass
 
@@ -141,6 +165,9 @@ def monitorx(args):
         if args.time != None and args.time[0] == 'none':
             args.time = None
 
+        if args.sleep != None and args.sleep[0] == 'none':
+            args.sleep = None
+
         # If the Clear argument from the json file is labelled True, then it will clear
         # every other argument
         if args.clear == True:
@@ -153,6 +180,7 @@ def monitorx(args):
             args.destmac = None
             args.date = None
             args.time = None
+            args.sleep = None
 
         # Dictionary keys to compare to packet info
         argdictlist = {"Destination":"", "Source":"", "Protocol":"", "Srcport":"", "Destport":"", "Srcmac":"", "Destmac":"", "Month":"", "Day":"", "Hour":"", "Minute":""}
@@ -294,6 +322,7 @@ def monitorx(args):
                 print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} ", end='')
             
             print(f"|Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
+            clock.sleep(sleeper)
 
         elif argdictset.issubset(packetdictset) == True:
             # Sends extended packet details to a txt file, named accordingly by date and time, for advanced analysis
@@ -332,125 +361,129 @@ def monitorx(args):
                 print(f"| Protocol: {proto} | Src Port: {src_port} | Dest Port: {dst_port} ", end='')
             
             print(f"|Date: {months[datetime_month-1]} {datetime_day} | Time: {datetime_hour}:{datetime_min}\n", end='')
+            clock.sleep(sleeper)
 
 
 # Print function. All arguments are sent here and printed
 
-if __name__ == '__main__':
-    # parser object
-    parser = argparse.ArgumentParser(description="A lightweight command-line based Network Packet Sniffer")
+# parser object
+parser = argparse.ArgumentParser(description="A lightweight command-line based Network Packet Sniffer")
 
-    parser.add_argument("-dest", "--destination", type=str, nargs=1, metavar="destination_ip", default=None, help="Specify your desired Destination IP Address for filtration; Syntax = 111.222.333.444")
-    parser.add_argument("-s", "--source", type=str, nargs=1, metavar="source_ip", default=None, help="Specify your desired Source IP Address for filtration; Syntax = 111.222.333.444")
-    parser.add_argument("-pr", "--protocol", type=str, nargs=1, metavar="protocol_name", default=None, help="Specify your desired Protocol name for filtration; TCP, UDP, ICMP")
-    parser.add_argument("-sp", "--srcport", type=str, nargs=1, metavar="src_port_num", default=None, help="Specify your desired Source Port number for filtration, from 1-65535")
-    parser.add_argument("-dp", "--destport", type=str, nargs=1, metavar="dest_port_num", default=None, help="Specify your desired Destination Port number for filtration, from 1-65535")
-    parser.add_argument("-sm" , "--srcmac", type=str, nargs=1, metavar="src_mac", default=None, help="Specify your desired Source Mac address for filtration, Case Sensitive; Syntax = 0A:0A:0A:0A:0A:0A")
-    parser.add_argument("-dm" , "--destmac", type=str, nargs=1, metavar="dest_mac", default=None, help="Specify your desired Destination Mac address for filtration, Case Sensitive; Syntax = 0A:0A:0A:0A:0A:0A")
-    parser.add_argument("-d", "--date", type=str, nargs=1, metavar="date", default=None, help="Specify your desired date of packet creation for filtration; Syntax = MMdd")
-    parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Specify your desired time of packet creation for filtration in 24 hour format; Syntax = HHmm")
-    parser.add_argument("-c", "--clear", action="store_true", help="Clear all already entered arguments//Use in linput.py")
+parser.add_argument("-dest", "--destination", type=str, nargs=1, metavar="dest_ip", default=None, help="Specify your desired Destination IP Address for filtration; Syntax = 111.222.333.444")
+parser.add_argument("-s", "--source", type=str, nargs=1, metavar="source_ip", default=None, help="Specify your desired Source IP Address for filtration; Syntax = 111.222.333.444")
+parser.add_argument("-pr", "--protocol", type=str, nargs=1, metavar="protocol_name", default=None, help="Specify your desired Protocol name for filtration; TCP, UDP, ICMP")
+parser.add_argument("-sp", "--srcport", type=str, nargs=1, metavar="src_port_num", default=None, help="Specify your desired Source Port number for filtration, from 1-65535")
+parser.add_argument("-dp", "--destport", type=str, nargs=1, metavar="dest_port_num", default=None, help="Specify your desired Destination Port number for filtration, from 1-65535")
+parser.add_argument("-sm" , "--srcmac", type=str, nargs=1, metavar="src_mac", default=None, help="Specify your desired Source Mac address for filtration, Case Sensitive; Syntax = 0A:0A:0A:0A:0A:0A")
+parser.add_argument("-dm" , "--destmac", type=str, nargs=1, metavar="dest_mac", default=None, help="Specify your desired Destination Mac address for filtration, Case Sensitive; Syntax = 0A:0A:0A:0A:0A:0A")
+parser.add_argument("-d", "--date", type=str, nargs=1, metavar="date", default=None, help="Specify your desired date of packet creation for filtration; Syntax = MMdd")
+parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Specify your desired time of packet creation for filtration in 24 hour format; Syntax = HHmm")
+parser.add_argument("-sl", "--sleep", type=float, nargs=1, metavar="sleep_sec", default=None, help="Specify how many seconds you would like the output to sleep upon printing a packet; for an easier to follow output.")
+parser.add_argument("-log", type=str, nargs=1, metavar="log_pick", default=None, help="Specify whether or not you'd like to log your capture session in a txt file.")
+parser.add_argument("-c", "--clear", action="store_true", help="Clear all already entered arguments//Use in linput.py")
 
 
-    args = parser.parse_args()
 
-    if args.destination != None:
-        try:
-            ipaddress.IPv4Address(args.destination[0])
-        except ipaddress.AddressValueError:  
-            sys.exit("Incorrect syntax for Destination IP! Reenter the option with this syntax: 123.123.123.123\nExiting program...")   
-    else:
+args = parser.parse_args()
+
+# Syntax catching for each argument
+if args.destination != None:
+    try:
+        ipaddress.IPv4Address(args.destination[0])
+    except ipaddress.AddressValueError:  
+        sys.exit("Incorrect syntax for Destination IP! Reenter the option with this syntax: 123.123.123.123\nExiting program...")   
+else:
+    pass
+
+if args.source != None:
+    try:
+        ipaddress.IPv4Address(args.source[0])
+    except ipaddress.AddressValueError:  
+        sys.exit("Incorrect syntax for Source IP! Reenter the option with this syntax: 123.123.123.123\nExiting program...")   
+else:
+    pass
+
+if args.protocol != None:
+    protolist = ["TCP", "UDP", "ICMP"]
+    if str(args.protocol[0]).isupper == False:
+        args.protocol[0] = str(args.protocol[0]).upper()
+    if args.protocol[0] not in protolist:
+        sys.exit(f"Protocol not in the list of fliterable protocols. Enter a protocol as it appears in this list: {', '.join(protolist)}")
+else:
+    pass
+
+if args.srcport != None:
+    try:
+        # Checking valid port number
+        if int(args.srcport[0]) not in range(1, 65535):
+            sys.exit("Entered Source port argument not found in range 1-65535! Reenter the option within that range\nExiting Program...")
+    except ValueError:
+        sys.exit("Entered Source port option is not an integer! Reenter as an integer within the range 1-65535\nExiting Program...")
+else:
+    pass
+
+if args.destport != None:
+    try:
+        # Checking valid port number)
+        if int(args.destport[0]) not in range(1, 65535):
+            sys.exit("Entered Destination port argument not found in range 1-65535! Reenter the option within that range\nExiting Program...")
+    except ValueError:
+        sys.exit("Entered Source port option is not an integer! Reenter as an integer within the range 1-65535\nExiting Program...")
+else:
+    pass
+
+if args.srcmac != None:
+    # Regex to check valid MAC address
+    regex = ("^([0-9A-F]{2}[:-])" +
+            "{5}([0-9A-F]{2})|" +
+            "([0-9A-F]{4}\\." +
+            "[0-9A-F]{4}\\." +
+            "[0-9A-F]{4})$")
+    p = re.compile(regex)
+    if (re.search(p, args.srcmac[0])):
         pass
-
-    if args.source != None:
-        try:
-            ipaddress.IPv4Address(args.source[0])
-        except ipaddress.AddressValueError:  
-            sys.exit("Incorrect syntax for Source IP! Reenter the option with this syntax: 123.123.123.123\nExiting program...")   
     else:
-        pass
+        sys.exit("Entered Source MAC address argument was not the proper syntax! Reenter MAC address with this syntax, Case Sensitive: 0A:0A:0A:0A:0A:0A or 0A-0A-0A-0A-0A-0A\nExiting Program...")
+else:
+    pass
 
-    if args.protocol != None:
-        protolist = ["TCP", "UDP", "ICMP"]
-        if str(args.protocol[0]).isupper == False:
-            args.protocol[0] = str(args.protocol[0]).upper()
-        if args.protocol[0] not in protolist:
-            sys.exit(f"Protocol not in the list of fliterable protocols. Enter a protocol as it appears in this list: {', '.join(protolist)}")
+if args.destmac != None:
+    # Regex to check valid MAC address
+    regex = ("^([0-9A-F]{2}[:-])" +
+            "{5}([0-9A-F]{2})|" +
+            "([0-9A-F]{4}\\." +
+            "[0-9A-F]{4}\\." +
+            "[0-9A-F]{4})$")
+    p = re.compile(regex)
+    if (re.search(p, args.destmac[0])):
+        pass
     else:
-        pass
+        sys.exit("Entered Destination MAC address argument was not the proper syntax! Reenter MAC address with this syntax, Case Sensitive: 0A:0A:0A:0A:0A:0A or 0A-0A-0A-0A-0A-0A\nExiting Program...")
+else:
+    pass
 
-    if args.srcport != None:
-        try:
-            # Checking valid port number
-            if int(args.srcport[0]) not in range(1, 65535):
-                sys.exit("Entered Source port argument not found in range 1-65535! Reenter the option within that range\nExiting Program...")
-        except ValueError:
-            sys.exit("Entered Source port option is not an integer! Reenter as an integer within the range 1-65535\nExiting Program...")
-    else:
-        pass
-
-    if args.destport != None:
-        try:
-            # Checking valid port number)
-            if int(args.destport[0]) not in range(1, 65535):
-                sys.exit("Entered Destination port argument not found in range 1-65535! Reenter the option within that range\nExiting Program...")
-        except ValueError:
-            sys.exit("Entered Source port option is not an integer! Reenter as an integer within the range 1-65535\nExiting Program...")
-    else:
-        pass
-
-    if args.srcmac != None:
-        # Regex to check valid MAC address
-        regex = ("^([0-9A-F]{2}[:-])" +
-                "{5}([0-9A-F]{2})|" +
-                "([0-9A-F]{4}\\." +
-                "[0-9A-F]{4}\\." +
-                "[0-9A-F]{4})$")
-        p = re.compile(regex)
-        if (re.search(p, args.srcmac[0])):
+if args.date != None:
+    if len(args.date[0]) == 4:
+        if args.date[0] == int:
             pass
-        else:
-            sys.exit("Entered Source MAC address argument was not the proper syntax! Reenter MAC address with this syntax, Case Sensitive: 0A:0A:0A:0A:0A:0A or 0A-0A-0A-0A-0A-0A\nExiting Program...")
     else:
-        pass
+        sys.exit("Entered Date argument is not an integer or was inputted incorrectly! Reenter Date argument with this syntax: MMDD\nExiting Program...")
+else:
+    pass
 
-    if args.destmac != None:
-        # Regex to check valid MAC address
-        regex = ("^([0-9A-F]{2}[:-])" +
-                "{5}([0-9A-F]{2})|" +
-                "([0-9A-F]{4}\\." +
-                "[0-9A-F]{4}\\." +
-                "[0-9A-F]{4})$")
-        p = re.compile(regex)
-        if (re.search(p, args.destmac[0])):
+if args.time != None:
+    if len(args.time[0]) == 4:
+        if args.time[0] == int:
             pass
-        else:
-            sys.exit("Entered Destination MAC address argument was not the proper syntax! Reenter MAC address with this syntax, Case Sensitive: 0A:0A:0A:0A:0A:0A or 0A-0A-0A-0A-0A-0A\nExiting Program...")
     else:
-        pass
+        sys.exit("Entered Time argument is not an integer or was inputted incorrectly! Reenter Time argument with this syntax in a 24 hour format: HHMM\nExiting Program")
 
-    if args.date != None:
-        if len(args.date[0]) == 4:
-            if args.date[0] == int:
-                pass
-        else:
-            sys.exit("Entered Date argument is not an integer or was inputted incorrectly! Reenter Date argument with this syntax: MMDD\nExiting Program...")
-    else:
-        pass
+# Executing the Program
+try: 
+    monitorx(args)
 
-    if args.time != None:
-        if len(args.time[0]) == 4:
-            if args.time[0] == int:
-                pass
-        else:
-            sys.exit("Entered Time argument is not an integer or was inputted incorrectly! Reenter Time argument with this syntax in a 24 hour format: HHMM\nExiting Program")
-
-    # Executing the Program
-    try: 
-        monitorx(args)
-
-    except KeyboardInterrupt:
-        pass
+except KeyboardInterrupt:
+    pass
 
 
-    # Think about a hypothetical client that this product is made for. Decide what they will want and how you are going to implement it.
+# Think about a hypothetical client that this product is made for. Decide what they will want and how you are going to implement it.
