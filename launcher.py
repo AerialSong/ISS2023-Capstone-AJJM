@@ -10,7 +10,7 @@ import netIDS
 
 
 def printBanner():  # Prints the main banner for the program
-    with open("banner.txt", "r") as f:  # FileNotFoundError
+    with open("banner.txt", "r") as f:
         print(f.read())
         f.close()
 
