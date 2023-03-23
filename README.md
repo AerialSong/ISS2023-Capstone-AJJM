@@ -39,4 +39,4 @@ This is detailed below:
 
 In order to perform live-input packet-sniffing, initiate the necessary script by running:<br>
 <code>>>> linput.py</code><br>
-In the python3 terminal which Scoria starts up, with any necessary arguments in the usual syntax.
+In the new user terminal window which Scoria starts up, with any necessary arguments in the usual syntax.
