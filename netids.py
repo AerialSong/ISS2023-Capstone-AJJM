@@ -3,7 +3,8 @@ import re
 from scapy.layers.http import HTTPRequest
 from scapy.all import *
 import tkinter
-from time import sleep
+import threading
+import time
 
 packet_filter = "ip"
 idsGui = tkinter.Tk()
@@ -11,14 +12,35 @@ idsGui.title("Suspicious Alerts!")
 
 idsList = tkinter.Listbox(idsGui, height=5)
 idsList.pack(fill=tkinter.BOTH, expand=True)
+behave_idsList = tkinter.Listbox(idsGui, height=5)
+behave_idsList.pack(fill=tkinter.BOTH, expand=True)
 
 def print_gui(content):
    idsList.insert(tkinter.END, content)  # Add the alert to the Listbox
    idsGui.update() # Update the GUI
-   sleep(0.5)
+   time.sleep(0.5)
 
+def behave_print_gui(content):
+   behave_idsList.insert(tkinter.END, content)  # Add the alert to the Listbox
+   idsGui.update() # Update the GUI
+   time.sleep(0.5)
+
+# ------------------------------------------------- Start of the Signature-based and Anomaly-based IDS ----------------------------------------------------------
 # Whitelist IP addresses
-whitelisted_ips = ['192.168.23', '10.']
+blacklisted_ips = ['10.0.2.12','175.45.176.1','175.45.176.2','175.45.176.3','175.45.176.4','175.45.176.5','175.45.176.6','175.45.176.7','175.45.176.8',
+                   '175.45.176.9','175.45.176.10','175.45.176.11','175.45.176.12','175.45.176.13','175.45.176.14','175.45.176.15','175.45.176.16',
+                   '175.45.176.17','175.45.176.18','175.45.176.19','175.45.176.20','175.45.176.21','175.45.176.22','175.45.176.23','175.45.176.24',
+                   '175.45.176.25','175.45.176.26','175.45.176.27','175.45.176.28','175.45.176.29','175.45.176.30','175.45.176.31','175.45.176.32',
+                   '175.45.176.33','175.45.176.34','175.45.176.35','175.45.176.36','175.45.176.37','175.45.176.38','175.45.176.39','175.45.176.40',
+                   '175.45.176.41','175.45.176.42','175.45.176.43','175.45.176.44','175.45.176.45','175.45.176.46','175.45.176.47','175.45.176.48',
+                   '175.45.176.49','175.45.176.50','175.45.176.51','175.45.176.52','175.45.176.53','175.45.176.54','175.45.176.55','175.45.176.56',
+                   '175.45.176.57','175.45.176.58','175.45.176.59','175.45.176.60','175.45.176.61','175.45.176.62','175.45.176.63','175.45.176.64',
+                   '175.45.176.65','175.45.176.66','175.45.176.67','175.45.176.68','175.45.176.69','175.45.176.70','175.45.176.71','175.45.176.72',
+                   '175.45.176.73','175.45.176.74','175.45.176.75','175.45.176.76','175.45.176.77','175.45.176.78','175.45.176.79','175.45.176.80',
+                   '175.45.176.81','175.45.176.82','175.45.176.83','175.45.176.84','175.45.176.85','175.45.176.86','175.45.176.87','175.45.176.88',
+                   '175.45.176.89','175.45.176.90','175.45.176.91','175.45.176.92','175.45.176.93','175.45.176.94','175.45.176.95','175.45.176.96',
+                   '175.45.176.97','175.45.176.98','175.45.176.99','175.45.176.100',]
+
 
 # Define suspicious file hashes. Sha-256 hashes are from MalwareBazaar
 suspicious_hashes = ['f0ec980108157002c8ca92507a2caa1f9a2cfa548959c7b1a2533ab7030966ee', 'e8ee3634afde1b13836ca2183216b38956942300ce6f73ac218152cc7baa47f7',
@@ -100,6 +122,19 @@ suspicious_headers = {
     "Authorization": ["Basic", "Digest"],
 }
 
+# Define the IP address of the network to monitor
+network_ip = "10.0.2"
+
+# Define the start and end times of the workday
+start_time = "06:00:00"
+end_time = "19:00:00"
+
+# Define the maximum amount of data that can be transferred during the workday
+max_data_transfer = 1000
+
+# Define a dictionary to store the data transfer for each IP address
+data_transfer = {}
+
 
 # Define a function to detect suspicious packets
 def detect_packet(packet):
@@ -107,10 +142,9 @@ def detect_packet(packet):
    if IP in packet:
       ip_src = packet[IP].src
       ip_dst = packet[IP].dst
-      if not (ip_src.startswith(whitelisted_ips[0]) or ip_src.startswith(whitelisted_ips[1])):
-         if not (ip_dst.startswith(whitelisted_ips[0]) or ip_dst.startswith(whitelisted_ips[1])):
-            sus_alert = f'Suspicious IP address detected: Source - {packet[IP].src} | Destination - {packet[IP].dst}'
-            print_gui(sus_alert)
+      if ip_src in blacklisted_ips or ip_dst in blacklisted_ips:
+         sus_alert = f'Suspicious IP address detected: Source - {packet[IP].src} | Destination - {packet[IP].dst}'
+         print_gui(sus_alert)
 
    # Check for suspicious file hashes
    if Raw in packet:
@@ -143,10 +177,10 @@ def detect_packet(packet):
       if header in packet:
          for value in suspicious_headers[header]:
             if value in packet[header]:
-               sus_alert = f"Suspicious packet detected: Source - {packet[IP].src} | Payload - {packet.summary()}"
+               sus_alert = f"Suspicious packet header detected: Source - {packet[IP].src} | Payload - {packet.summary()}"
                print_gui(sus_alert)
 
-   # Check for suspicious packet sizes
+   # Check for suspicious packet sizes (Data exfiltration)
    if TCP in packet and packet[TCP].payload:
       payload_length = len(packet[TCP].payload)
       tcp_header_length = len(packet[TCP])
@@ -155,13 +189,70 @@ def detect_packet(packet):
       if actual_length > expected_length * 3 or actual_length < expected_length * 0.03:
          sus_alert = f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}"
          print_gui(sus_alert)
+   
+   # Check if the packet is an IP packet
+   if IP in packet:
+      # Get the source IP addresses
+      src_ip = packet[IP].src
+      # Check if the source IP address is part of the network to monitor
+      if src_ip.startswith(network_ip):
+         # Check if the current time is during the workday
+         current_time = time.strftime("%H:%M:%S", time.localtime())
+         
+         if start_time <= current_time <= end_time:
+            # Update the amount of data transferred for the source IP address
+            if src_ip in data_transfer:
+               data_transfer[src_ip] += len(packet)
+            else:
+               data_transfer[src_ip] = len(packet)
+            # Check if the amount of data transferred exceeds the maximum
+            if data_transfer[src_ip] > max_data_transfer:
+               behave_sus_alert = f"Anomalous traffic detected! Expected size: {max_data_transfer}, got {data_transfer[src_ip]} | Source - {packet[IP].src}"
+               behave_print_gui(behave_sus_alert)
+               data_transfer[src_ip] = 0
+         
+         else:
+            behave_sus_alert = f"Anomalous traffic detected! Expected time: {start_time} - {end_time}, got {current_time} | Source - {packet[IP].src}"
+            behave_print_gui(behave_sus_alert)
+         
 
-# Create a packet sniffer using Scapy
-# Making it as a module. Example use: "this_file".sniff(filter=packet_filter, prn=detect_packet)
-if __name__ == "__main__":
-   try: 
+# Set the monitoring time and packet count threshold
+monitoring_time = 10 # in seconds
+threshold = 100 # number of packets
+pkt_count = 0 # packet count
+
+def monitor_traffic(pkt):
+    # Count the number of packets seen so far
+    global pkt_count
+    pkt_count += 1
+    
+    # If the number of packets exceeds a threshold, generate an alert
+    if pkt_count > threshold:  
+      behave_sus_alert = f"Anomalous traffic volume detected: {pkt_count} packets in {monitoring_time} seconds"
+      behave_print_gui(behave_sus_alert)
+
+
+
+
+# --------------------------------- Start of the Main functions of the IDS -------------------------------------------------
+
+def d_packet():
+   try:
       sniff(filter=packet_filter, prn=detect_packet)
-      idsGui.mainloop()
-
    except:
       pass
+
+def m_packet():
+   try:
+      sniff(timeout=monitoring_time, prn=monitor_traffic)
+   except:
+      pass
+
+thread_detect = threading.Thread(target=d_packet)
+thread_monitor = threading.Thread(target=m_packet)
+
+thread_detect.start()
+thread_monitor.start()
+idsGui.mainloop()
+thread_detect.join()
+thread_monitor.join()
