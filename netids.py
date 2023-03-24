@@ -211,8 +211,12 @@ def m_packet():
 thread_detect = threading.Thread(target=d_packet)
 thread_monitor = threading.Thread(target=m_packet)
 
-thread_detect.start()
-thread_monitor.start()
-idsGui.mainloop()
-thread_detect.join()
-thread_monitor.join()
+try:
+   thread_detect.start()
+   thread_monitor.start()
+   idsGui.mainloop()
+   thread_detect.join()
+   thread_monitor.join()
+
+except:
+   pass
