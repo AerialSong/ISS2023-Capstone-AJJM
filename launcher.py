@@ -16,7 +16,7 @@ def printBanner():  # Prints the main banner for the program
 def runScripts():  # Flow control for main program functionality
    print("Welcome to SCORIA! What would you like to do?")
    print("")
-   choice = int(input("1. Scan ports\n2. Monitor traffic\n3. Export logs to cloud\n4. Quit program\n"))
+   choice = int(input("1. Scan ports\n2. Monitor traffic and export logs to cloud\n3. Intrution Detection System\n4. Quit program\n"))
 
    if choice == 1:
       import ports
