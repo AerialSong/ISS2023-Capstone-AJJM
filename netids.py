@@ -99,7 +99,6 @@ suspicious_payload_pattern = [
    "#!/bin/bash",  # Indicates a shell script file
    "\x1F\x8B\x08",  # Indicates a GZIP compressed file
    "\x42\x5A\x68",  # Indicates a BZIP2 compressed file
-   "\x50\x4B\x03\x04",  # Indicates a ZIP archive file
    "ssh-",  # Indicates an SSH key file
    "\x1F\x9D",  # Indicates a compress compressed file
    "\x1F\xA0",  # Indicates a lzop compressed file
