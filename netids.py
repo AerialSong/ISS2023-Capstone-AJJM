@@ -169,7 +169,7 @@ def detect_packet(packet):
                data_transfer[src_ip] = len(packet)
             # Check if the amount of data transferred exceeds the maximum
             if data_transfer[src_ip] > max_data_transfer:
-               behave_sus_alert = f"Anomalous traffic detected! Expected size: {max_data_transfer}, got {data_transfer[src_ip]} | Source - {packet[IP].src}"
+               behave_sus_alert = f"Anomalous traffic detected! Maximum expected size: {max_data_transfer}, got {data_transfer[src_ip]} | Source - {packet[IP].src}"
                behave_print_gui(behave_sus_alert)
                data_transfer[src_ip] = 0
          
