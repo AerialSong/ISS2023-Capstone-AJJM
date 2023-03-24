@@ -67,6 +67,7 @@ suspicious_hashes = ['f0ec980108157002c8ca92507a2caa1f9a2cfa548959c7b1a2533ab703
                      '1e13c8a7c2b89db3cf0f5d84ae88f5a6a12ca10c4673ad0297dfde1445626d0d', '710709a200a5cda2a4293e9de521ab65d23170ab8bca04c8c7af22f86091d5d7',
                      '053877cae27e1b2cb0aac24b5a562736be62d2756dc9897eca8e72e39ff385f9', '3b07ad25ee1df777dc55b81828866fd88ac45020d0de4747b75b105f1f953e4e']
 
+
 # Define suspicious URL patterns
 suspicious_url_pattern = [
    r".*\/(\.\.\/)+",  # Directory traversal attempt
@@ -85,36 +86,22 @@ suspicious_url_pattern = [
    r".*\/(cron|scheduled)\/.*" # Cron job or scheduled task URL
 ]
 
-
-# Define suspicious packet payload patterns
-suspicious_payload_pattern = [
-   "RIFF....WAVEfmt",  # Indicates a WAV audio file
-   "Rar!",  # Indicates a RAR archive file
-   "7z¼¯'¸",  # Indicates a 7-Zip archive file
-   "\x50\x4B\x03\x04",  # Indicates a ZIP archive file
-   "ustar",  # Indicates a Unix TAR archive file
-   "PK\x03\x04",  # Indicates a 7-Zip, PKZIP, or WinZip archive file
-   "SQLite format 3",  # Indicates a SQLite database file
-   "\x1F\x8B\x08",  # Indicates a GZIP compressed file
-   "\x42\x5A\x68",  # Indicates a BZIP2 compressed file
-   "ssh-",  # Indicates an SSH key file
-   "\x1F\x9D",  # Indicates a compress compressed file
-   "\x1F\xA0",  # Indicates a lzop compressed file
-   "\xFD\x37\x7A\x58\x5A\x00",  # Indicates an xz compressed file
-   "\x42\x5A\x68\x39\x31\x41\x59\x26\x53\x59",  # Indicates a BZIP2 compressed file
-   "\x75\x73\x74\x61\x72",  # Indicates a tar archive file
-]
-
+# Define suspicious packet header values
+suspicious_headers = {
+    "Accept-Language": ["ru", "cn"],
+    "Cookie": ["admin", "root"],
+    "Authorization": ["Basic", "Digest"],
+}
 
 # Define the IP address of the network to monitor
 network_ip = "10.0.2"
 
 # Define the start and end times of the workday
 start_time = "06:00:00"
-end_time = "19:00:00"
+end_time = "22:00:00"
 
 # Define the maximum amount of data that can be transferred during the workday
-max_data_transfer = 1000
+max_data_transfer = 10000000
 
 # Define a dictionary to store the data transfer for each IP address
 data_transfer = {}
@@ -146,16 +133,14 @@ def detect_packet(packet):
          if re.match(pattern, url):
             sus_alert = f'Suspicious URL pattern detected: Source - {packet[IP].src} | Payload - {payload}'
             print_gui(sus_alert)
-
-
-   # Check for suspicious packet payload patterns
-   if TCP in packet and packet[TCP].payload:
-      payload = str(packet[TCP].payload)
-      for pattern in suspicious_payload_pattern:
-         if re.search(pattern, payload):
-            sus_alert = f'Suspicious packet payload detected: Source - {packet[IP].src} | Payload - {payload}'
-            print_gui(sus_alert)
-
+            
+   # Check for suspicious headers
+   for header in suspicious_headers:
+      if header in packet:
+         for value in suspicious_headers[header]:
+            if value in packet[header]:
+               sus_alert = f"Suspicious packet detected: Source - {packet[IP].src} | Payload - {packet.summary()}"
+               print_gui(sus_alert)
 
    # Check for suspicious packet sizes (Data exfiltration)
    if TCP in packet and packet[TCP].payload:
@@ -164,7 +149,7 @@ def detect_packet(packet):
       expected_length = tcp_header_length + payload_length
       actual_length = len(packet)
       if actual_length > expected_length * 3 or actual_length < expected_length * 0.03:
-         behave_sus_alert = f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}"
+         behave_sus_alert = f"Packet size is suspicious! Expected length: {expected_length}, got {actual_length} | Source - {packet[IP].src}"
          behave_print_gui(sus_alert)
    
    # Check if the packet is an IP packet
@@ -195,7 +180,7 @@ def detect_packet(packet):
 
 # Set the monitoring time and packet count threshold
 monitoring_time = 10 # in seconds
-threshold = 100 # number of packets
+threshold = 10000 # number of packets
 pkt_count = 0 # packet count
 
 def monitor_traffic(pkt):
@@ -207,8 +192,6 @@ def monitor_traffic(pkt):
     if pkt_count > threshold:  
       behave_sus_alert = f"Anomalous traffic volume detected: {pkt_count} packets in {monitoring_time} seconds"
       behave_print_gui(behave_sus_alert)
-
-
 
 
 # --------------------------------- Start of the Main functions of the IDS -------------------------------------------------
