@@ -70,11 +70,10 @@ suspicious_hashes = ['f0ec980108157002c8ca92507a2caa1f9a2cfa548959c7b1a2533ab703
 # Define suspicious URL patterns
 suspicious_url_pattern = [
    r".*\/(\.\.\/)+",  # Directory traversal attempt
+   r".*\/(upgrade|install)\/.*" # Software installation attempt
    r".*\/(passwd|shadow|group)$",  # Password file access attempt
    r".*\/(etc|proc|var\/log)\/.*",  # System file access attempt
    r".*\/(bin|usr\/bin|usr\/local\/bin)\/.*",  # Binary file access attempt
-   r".*\.(msi|exe|dll|cmd|bat|ps1|vbs|hta)$", # Windows executable file access or download attempt
-   r".*\/(powershell|cmd|command|wmic)\/.*" # Command injection or PowerShell access attempt
    r".*\/(cmd|exec|eval|system|passthru|shell_exec|popen)\/.*",  # Command execution attempt
    r".*\/(cmd\.exe|cmd\.php|cmd\.jsp|cmd\.asp)\/.*",  # Command injection attempt
    r".*\.(zip|tar|gz)$" # Suspicious archive file download
@@ -82,10 +81,10 @@ suspicious_url_pattern = [
    r".*\/(config|conf|cfg|settings|ini)\/.*" # Configuration file access attempt
    r".*\/(debug|test|demo|example)\/.*" # Development or testing URL
    r".*\/(backup|old|archive)\/.*" # Backup or archive file access attempt
-   r".*\/(update|upgrade|patch|install)\/.*" # Software update or installation attempt
    r".*\/(download|get|fetch)\/.*" # Suspicious file download attempt
    r".*\/(cron|scheduled)\/.*" # Cron job or scheduled task URL
 ]
+
 
 # Define suspicious packet payload patterns
 suspicious_payload_pattern = [
@@ -96,7 +95,6 @@ suspicious_payload_pattern = [
    "ustar",  # Indicates a Unix TAR archive file
    "PK\x03\x04",  # Indicates a 7-Zip, PKZIP, or WinZip archive file
    "SQLite format 3",  # Indicates a SQLite database file
-   "#!/bin/bash",  # Indicates a shell script file
    "\x1F\x8B\x08",  # Indicates a GZIP compressed file
    "\x42\x5A\x68",  # Indicates a BZIP2 compressed file
    "ssh-",  # Indicates an SSH key file
@@ -104,19 +102,9 @@ suspicious_payload_pattern = [
    "\x1F\xA0",  # Indicates a lzop compressed file
    "\xFD\x37\x7A\x58\x5A\x00",  # Indicates an xz compressed file
    "\x42\x5A\x68\x39\x31\x41\x59\x26\x53\x59",  # Indicates a BZIP2 compressed file
-   "\x1F\x8B\x08\x00\x00\x00\x00\x00",  # Indicates a GZIP compressed file
    "\x75\x73\x74\x61\x72",  # Indicates a tar archive file
 ]
 
-
-# Define suspicious packet header values
-suspicious_headers = {
-    "User-Agent": ["hack", "exploit", "malware"],
-    "Referer": ["evil.com", "hacker.com", "malware.com"],
-    "Accept-Language": ["ru", "cn"],
-    "Cookie": ["admin", "root"],
-    "Authorization": ["Basic", "Digest"],
-}
 
 # Define the IP address of the network to monitor
 network_ip = "10.0.2"
@@ -168,13 +156,6 @@ def detect_packet(packet):
             sus_alert = f'Suspicious packet payload detected: Source - {packet[IP].src} | Payload - {payload}'
             print_gui(sus_alert)
 
-   # Check for suspicious headers
-   for header in suspicious_headers:
-      if header in packet:
-         for value in suspicious_headers[header]:
-            if value in packet[header]:
-               sus_alert = f"Suspicious packet header detected: Source - {packet[IP].src} | Payload - {packet.summary()}"
-               print_gui(sus_alert)
 
    # Check for suspicious packet sizes (Data exfiltration)
    if TCP in packet and packet[TCP].payload:
