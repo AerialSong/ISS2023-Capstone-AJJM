@@ -187,8 +187,8 @@ def detect_packet(packet):
       expected_length = tcp_header_length + payload_length
       actual_length = len(packet)
       if actual_length > expected_length * 3 or actual_length < expected_length * 0.03:
-         sus_alert = f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}"
-         print_gui(sus_alert)
+         behave_sus_alert = f"Packet size is suspicious! Expected {expected_length}, got {actual_length} | Source - {packet[IP].src}"
+         behave_print_gui(sus_alert)
    
    # Check if the packet is an IP packet
    if IP in packet:
