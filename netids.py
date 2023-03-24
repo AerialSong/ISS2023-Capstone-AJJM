@@ -106,9 +106,6 @@ suspicious_payload_pattern = [
    "\x42\x5A\x68\x39\x31\x41\x59\x26\x53\x59",  # Indicates a BZIP2 compressed file
    "\x1F\x8B\x08\x00\x00\x00\x00\x00",  # Indicates a GZIP compressed file
    "\x75\x73\x74\x61\x72",  # Indicates a tar archive file
-   "BEGIN RSA PRIVATE KEY",  # Indicates an RSA private key file
-   "BEGIN DSA PRIVATE KEY",  # Indicates a DSA private key file
-   "BEGIN EC PRIVATE KEY"  # Indicates an EC private key file
 ]
 
 
