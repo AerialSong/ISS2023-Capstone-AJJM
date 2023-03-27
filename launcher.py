@@ -1,6 +1,7 @@
 #!/usr/bin/bash
 
 import sys
+import ports
 
 # Code by Mackenzie Cleland, 2023
 
@@ -16,20 +17,20 @@ def printBanner():  # Prints the main banner for the program
 def runScripts():  # Flow control for main program functionality
    print("Welcome to SCORIA! What would you like to do?")
    print("")
-   choice = int(input("1. Scan ports\n2. Monitor traffic\n3. Conduct IDS\n4. Export logs to cloud\n5. Quit program\n"))
+   choice = int(input("1. Scan ports\n2. Monitor traffic (Currently only works on Linux systems!!!)\n3. Export logs to cloud\n4. Detect instrusions on host\n5. Quit program\n"))
 
    if choice == 1:
-      import ports
+      ports.main()
    
    elif choice == 2:
       import sniffer
 
    elif choice == 3:
-      import netids
+      # module here
+      pass
 
    elif choice == 4:
-      #module here
-      pass
+      import netids
 
    elif choice == 5:
       print("Acknowledged. Exiting program...")
