@@ -16,14 +16,6 @@ import shlex
 # gnome-session
 # dbus-x11
 
-'''
-The plan:
-
-Ask user if they want to make a log
-If yes, make log and write to it like normal
-
-If no, skip the logging
-'''
 
 PIPEPATH = f'./packetlogs/packetext{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.txt'
 
@@ -362,11 +354,10 @@ def monitorx(args):
             clock.sleep(sleeper)
 
 
-# Print function. All arguments are sent here and printed
-
 # parser object
 parser = argparse.ArgumentParser(description="A lightweight command-line based Network Packet Sniffer")
 
+# All arguments and their details
 parser.add_argument("-dest", "--destination", type=str, nargs=1, metavar="dest_ip", default=None, help="Specify your desired Destination IP Address for filtration; Syntax = 111.222.333.444")
 parser.add_argument("-s", "--source", type=str, nargs=1, metavar="source_ip", default=None, help="Specify your desired Source IP Address for filtration; Syntax = 111.222.333.444")
 parser.add_argument("-pr", "--protocol", type=str, nargs=1, metavar="protocol_name", default=None, help="Specify your desired Protocol name for filtration; TCP, UDP, ICMP")
@@ -379,8 +370,6 @@ parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=N
 parser.add_argument("-sl", "--sleep", type=float, nargs=1, metavar="sleep_sec", default=None, help="Specify how many seconds you would like the output to sleep upon printing a packet; for an easier to follow output.")
 parser.add_argument("-log", type=str, nargs=1, metavar="log_pick", default=None, help="Specify whether or not you'd like to log your capture session in a txt file.")
 parser.add_argument("-c", "--clear", action="store_true", help="Clear all already entered arguments//Use in linput.py")
-
-
 
 args = parser.parse_args()
 
@@ -482,6 +471,3 @@ try:
 
 except KeyboardInterrupt:
     pass
-
-
-# Think about a hypothetical client that this product is made for. Decide what they will want and how you are going to implement it.
