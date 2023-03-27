@@ -17,8 +17,8 @@ To run Scoria, simply run:<br>
 The Scoria All-in-One IDS Suite contains the following functionality:<br>
 Port scanning software<br>
 Live-input packet sniffer<br>
-IDS software<br>
 Cloud-based log exportation software<br>
+IDS software<br>
 
 This is detailed below:
 
@@ -39,11 +39,11 @@ The Live input functionality is performed via linput.py. As sniffer.py is runnin
 sniffer.py would read this new filter instruction and print accordingly
 
 
-<h3>c. IDS Software (netids.py)</h3>
+<h3>c. Cloud-Based Log Exportation Software (netlog.py, s3nder.py)</h3>
+
+
+<h3>d. IDS Software (netids.py)</h3>
 This is a Host IDS feature that is designed for the network environment of the host computer. It utilizes a combination of signature-based and anomaly-based detection methods. 
-
-<h3>d. Cloud-Based Log Exportation Software (netlog.py, s3nder.py)</h3>
-
 
 
 <h2>3. Important Information Regarding Live-Input</h2>
