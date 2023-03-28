@@ -39,7 +39,7 @@ The Live input functionality is performed via linput.py. As sniffer.py is runnin
 sniffer.py would read this new filter instruction and print accordingly
 
 
-<h3>c. Cloud-Based Log Exportation Software (netlog.py, s3nder.py)</h3>
+<h3>c. Cloud-Based Log Exportation Software (s3nder.py)</h3>
 
 
 <h3>d. IDS Software (netids.py)</h3>
