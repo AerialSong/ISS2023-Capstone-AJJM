@@ -25,7 +25,7 @@ This is detailed below:
 <h3>a. Port-Scanning Software (ports.py)</h3>
 
 
-<h3>b. Live-Input Packet Sniffer (sniffer.py, linput.py)</h3>
+<h3>b. Live-Input Packet Sniffer (netmon.py, sniffer.py, linput.py)</h3>
 This application allows a user to sniff for network packets and filter for custom characteristics. For instance, if a user wanted to only output TCP packets with the destination IP 10.20.30.4, the syntax would be: 
 
 sudo ./sniffer.py -dest 10.20.30.4 -pr TCP
@@ -39,7 +39,7 @@ The Live input functionality is performed via linput.py. As sniffer.py is runnin
 sniffer.py would read this new filter instruction and print accordingly
 
 
-<h3>c. Cloud-Based Log Exportation Software (s3nder.py)</h3>
+<h3>c. Cloud-Based Log Exportation Software (s3nder.sh, cloudlog.py)</h3>
 
 
 <h3>d. IDS Software (netids.py)</h3>
