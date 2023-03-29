@@ -20,7 +20,10 @@ import shlex
 PIPEPATH = f'./packetlogs/packetext{datetime.datetime.now().strftime("%Y-%m-%d_%H:%M:%S")}.txt'
 
 # Code by Arthur Kutepov, Jomel Jay 2023
-
+    
+# Variations of yes and no in input
+yes = ['yes', 'Yes', 'YES', 'Y', 'y']
+no = ['no', 'No', "NO", 'N', 'n']
 
 def monitorx(args):
     # Makes a socket connection
@@ -32,11 +35,6 @@ def monitorx(args):
     format_tab = "\t   "
     # Path for argument changing json txt file
     path = "arg.txt"
-
-
-    # Variations of yes and no in input
-    yes = ['yes', 'Yes', 'YES', 'Y', 'y']
-    no = ['no', 'No', "NO", 'N', 'n']
 
     if len(sys.argv) < 2:
         wantargs = input("Would you like to filter output for any arguments? (Default Value N) Y/N: ")
@@ -76,7 +74,15 @@ def monitorx(args):
     elif logging in no:
         pass
 
-    termin = input("Would you like to launch a new root terminal window with which to input new arguments live? (Default value N) Y/N: ")
+    # Checks to see if the terminal option had been flagged
+    # If it hasn't, it prompts the user to input an answer
+    if args.terminal == None:
+        termin = input("Would you like to launch a new root terminal window with which to input new arguments live? (Defualt value N) Y/N: ")
+        if termin == '':
+            termin = "n"
+    else:
+        termin = args.terminal[0]
+    
     if termin in yes:
         os.system("gnome-terminal")
     elif termin in no:
@@ -369,6 +375,7 @@ parser.add_argument("-d", "--date", type=str, nargs=1, metavar="date", default=N
 parser.add_argument("-t", "--time", type=str, nargs=1, metavar="time", default=None, help="Specify your desired time of packet creation for filtration in 24 hour format; Syntax = HHmm")
 parser.add_argument("-sl", "--sleep", type=float, nargs=1, metavar="sleep_sec", default=None, help="Specify how many seconds you would like the output to sleep upon printing a packet; for an easier to follow output.")
 parser.add_argument("-log", type=str, nargs=1, metavar="log_pick", default=None, help="Specify whether or not you'd like to log your capture session in a txt file.")
+parser.add_argument("-term", "--terminal", type=str, nargs=1, metavar="termpick", default=None, help="Specify whether you would like a terminal to spawn with which to update arguments live with, using linput.py.")
 parser.add_argument("-c", "--clear", action="store_true", help="Clear all already entered arguments//Use in linput.py")
 
 args = parser.parse_args()
@@ -464,6 +471,18 @@ if args.time != None:
             pass
     else:
         sys.exit("Entered Time argument is not an integer or was inputted incorrectly! Reenter Time argument with this syntax in a 24 hour format: HHMM\nExiting Program")
+
+if args.log != None:
+    if args.log[0] not in no and args.log[0] not in yes:
+        sys.exit("Entered argument is not a valid! Please enter yes or no.\nExiting Program...")
+    else:
+        pass
+
+if args.terminal != None:
+    if args.terminal[0] not in no and args.terminal[0] not in yes:
+        sys.exit("Entered argument is not a valid! Please enter yes or no.\nExiting Program...")
+    else:
+        pass
 
 # Executing the Program
 try: 
