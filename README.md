@@ -23,7 +23,28 @@ IDS software<br>
 This is detailed below:
 
 <h3>a. Port-Scanning Software (ports.py)</h3>
+This application allows the user to scan for open or closed ports within a specified range, as well as check for ARP tables and banners therein. Specifically, the port scanner allows for three sorts of operations:
 
+    1. Generating a config file for automated scanning;
+    2. Reading said file in order to perform an automated scan;
+    3. Performing a custom scan with specific user-provided parameters.
+    
+<h4>i. Generating a Config File for Automated Scanning</h4>
+    
+In the first instance, the user is presented with a series of options, which are then sent to a configuration file named, "config.txt". Please note that this filename **must** remain the same at all times; otherwise, Scoria will be unable to detect it.
+
+The config file consists of the following parameters, listed in order of appearance:
+
+    1. Host IP address
+    2. Lower limit for port scan range
+    3. Upper limit for port scan range
+    4. ARP/Banner-grabbing option for scan
+        1 = Banners only;
+        2 = ARP only;
+        3 = ARP/Banners;
+        4 = No additional checks
+        
+ Again, the formatting for config.txt **MUST** follow the above, four-line format, otherwise Scoria will be unable to read it properly.
 
 <h3>b. Live-Input Packet Sniffer (netmon.py, sniffer.py, linput.py)</h3>
 This application allows a user to sniff for network packets and filter for custom characteristics. For instance, if a user wanted to only output TCP packets with the destination IP 10.20.30.4, the syntax would be: 
