@@ -76,7 +76,7 @@ def monitorx(args):
     elif logging in no:
         pass
 
-    termin = input("Would you like to launch a new root terminal window with which to input new arguments live? (Defualt value N) Y/N: ")
+    termin = input("Would you like to launch a new root terminal window with which to input new arguments live? (Default value N) Y/N: ")
     if termin in yes:
         os.system("gnome-terminal")
     elif termin in no:
