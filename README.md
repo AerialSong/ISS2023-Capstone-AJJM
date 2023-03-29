@@ -54,13 +54,13 @@ The third option allows the user to manually stipulate parameters with which to 
 <h3>b. Live-Input Packet Sniffer (netmon.py, sniffer.py, linput.py)</h3>
 This application allows a user to sniff for network packets and filter for custom characteristics. For instance, if a user wanted to only output TCP packets with the destination IP 10.20.30.4, the syntax would be: 
 
-sudo ./sniffer.py -dest 10.20.30.4 -pr TCP
+<code>sudo ./sniffer.py -dest 10.20.30.4 -pr TCP</code>
 
 This allows for a constant and uninterrupted workflow, and with the --sleep option, a user can pause output after each packet for an easier to follow output.
 
 The Live input functionality is performed via linput.py. As sniffer.py is running, a user may send brand new arguments for filtering to the output. If sniffer is output packets that filter for source IP 30.40.50.6, and during this output a user decides to filter for source IP 20.40.60.8 instead, the run this command in the newly opened terminal:
 
-./linput.py -s 20.40.60.8
+<code>./linput.py -s 20.40.60.8</code>
 
 sniffer.py would read this new filter instruction and print accordingly
 
