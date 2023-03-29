@@ -30,7 +30,7 @@ This application allows the user to scan for open or closed ports within a speci
     3. Performing a custom scan with specific user-provided parameters.
     
 <h4>i. Generating a Config File for Automated Scanning</h4>
-In the first instance, the user is presented with a series of options, which are then sent to a configuration file named, "config.txt". Please note that this filename **must** remain the same at all times; otherwise, Scoria will be unable to detect it.
+In the first instance, the user is presented with a series of options, which are then sent to a configuration file named, "config.txt". Please note that this filename **MUST** remain the same at all times; otherwise, Scoria will be unable to detect it.
 
 The config file consists of the following parameters, listed in order of appearance:
 
