@@ -26,8 +26,7 @@ def runScripts():  # Flow control for main program functionality
       import sniffer
 
    elif choice == 3:
-      # import cloudlog
-      pass
+      import cloudlog
 
    elif choice == 4:
       import netids
