@@ -61,7 +61,7 @@ def monitorx(args):
         if sleeper != '':
             sleeper = float(sleeper)
     else:
-        sleeper = args.sleep[0]
+        pass
 
     # Checks if packetlogs directory exists within current directory
     # If not, it will create that directory
@@ -278,6 +278,9 @@ def monitorx(args):
         # Turn dictionaries into sets
         argdictset = set(argdictlist.items())
         packetdictset = set(packetdictlist.items())
+
+        if args.sleep != None:
+            sleeper = args.sleep[0]
 
 
         # If every argument is Null, then packets print normally
