@@ -36,6 +36,8 @@ def monitorx(args):
     # Path for argument changing json txt file
     path = "arg.txt"
 
+    # Checks if there are less than two arguments entered at the command line
+    # If so, it asks user if they would like to enter arguments for filtering
     if len(sys.argv) < 2:
         wantargs = input("Would you like to filter output for any arguments? (Default Value N) Y/N: ")
         if wantargs == '':
