@@ -9,7 +9,7 @@ dateValue=`date -R`
 echo "Please enter your AWS key:"
 read s3Key
 echo "Please enter your Secret AWS key:"
-read s3Secret
+read -s s3Secret
 
 #Asks user if they have a bucket or want to make one
 echo "Do you want to create a new S3 bucket or use an existing one?"
@@ -32,9 +32,9 @@ select option in "Create new bucket" "Use existing bucket"; do
     esac
 done
 
-echo "Your AWS key is: $s3Key"
-echo "Your Secret AWS key is: $s3Secret"
-echo "Your chosen S3 bucket name is: $bucket"
+#echo "Your AWS key is: $s3Key"
+#echo "Your Secret AWS key is: $s3Secret"
+#echo "Your chosen S3 bucket name is: $bucket"
 
 aws configure set aws_access_key_id $s3Key
 aws configure set aws_secret_access_key $s3Secret
