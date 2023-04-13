@@ -281,6 +281,7 @@ def monitorx(args):
         argdictset = set(argdictlist.items())
         packetdictset = set(packetdictlist.items())
 
+        # If sleep argument is not none, replaces sleeper variable with the argument value
         if args.sleep != None:
             sleeper = args.sleep[0]
 
@@ -365,7 +366,7 @@ def monitorx(args):
             clock.sleep(sleeper)
 
 
-# parser object
+# Parser object
 parser = argparse.ArgumentParser(description="A lightweight command-line based Network Packet Sniffer")
 
 # All arguments and their details
