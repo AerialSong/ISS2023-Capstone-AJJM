@@ -66,7 +66,13 @@ sniffer.py would read this new filter instruction and print accordingly
 
 
 <h3>c. Cloud-Based Log Exportation Software (s3nder.sh, cloudlog.py)</h3>
+In order to use the clould logging functionality you will need to have set up an aws account and create an IAM user. Here is a great guide to get you started - https://aws.amazon.com/getting-started/hands-on/backup-to-s3-cli/. 
 
+<h4>i. Sending Logs to S3</h4>
+S3nder.sh asks the user to input the full path of the location of the files they would like to send. Once the path is given, they are asked to enter their aws credentials and the name of the bucket they would like to store this information in. If successful, the program echoes “Credentials saved successfully” and “logs sent to S3!”. 
+
+<h4>i. Deleting Logs & Accessing Logs</h4>
+Once the logs are sent, program asks the user if they would like to remove the logs that have been sent. If yes, the user inputs the path to the logs, and the program confirms if the user is positive of their choice; it then deletes the files. To access your logs, log into your aws account anc go to the S3 service to view your buckets and logs.
 
 <h3>d. IDS Software (netids.py)</h3>
 This is a Host IDS feature that is designed for the network environment of the host computer. It utilizes a combination of signature-based and anomaly-based detection methods. 
